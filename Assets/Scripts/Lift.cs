@@ -26,7 +26,7 @@ public class Lift : MonoBehaviour
         }
     }
 
-    public void ParentAssignier()
+    void ParentAssignier()
     {
         transform.parent.parent = GameManager.gameManager.transform;
     }

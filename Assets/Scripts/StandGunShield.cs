@@ -23,7 +23,7 @@ public class StandGunShield : MonoBehaviour
         shiledSlider.value = gunShieldHealthRef;
         if (gunShieldHealthRef <= 0)
         {
-            Gun.GetComponent<StandGun>().EnemyTarget("gun", Gun);
+            Gun.GetComponent<StandGun>().ChangeEnemyTarget(EnemyTarget.gun, Gun);
             DeadState();
         }
     }

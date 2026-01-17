@@ -53,10 +53,10 @@ public class Store : MonoBehaviour
             GameManager.gameManager.UpdateCash(-requiredCurrencyForG);
             granadeCount--;
             granadeCountText.text = granadeCount.ToString();
-            PlayerFiring playerFiring = GameObject.FindWithTag("Player").GetComponent<PlayerFiring>();
-            if(playerFiring != null)
+            PlayerManager playerManager = GameObject.FindWithTag("Player").GetComponent<PlayerManager>();
+            if(playerManager != null)
             {
-                playerFiring.UpdateGranadeText(1);
+                playerManager.UpdateGranadeText(1);
                 if(GameManager.gameManager.LevelRef > storeIndex)
                 {
                     GameManager.gameManager.UpdateInventoryBetweenLevels(0,1,requiredCurrencyForG);
@@ -70,7 +70,7 @@ public class Store : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.None;
-            other.gameObject.GetComponent<PlayerFiring>().StopShootingOrThrowing();
+            other.gameObject.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
         }
     }
 
@@ -79,7 +79,7 @@ public class Store : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.Locked;
-            other.gameObject.GetComponent<PlayerFiring>().ActivateShootingOrThrowing();
+            other.gameObject.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 }

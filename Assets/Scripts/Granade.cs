@@ -1,10 +1,10 @@
 using UnityEngine;
+using System.Collections;
 
 public class Granade : MonoBehaviour
 {
     AudioSource blastAudioSource;
     [SerializeField] ParticleSystem blastParticles;
-    PlayerFiring player;
     int granadeRadius = 10;
     int damage = 500;
     public int timeLeft;
@@ -15,20 +15,15 @@ public class Granade : MonoBehaviour
         blastAudioSource = GameObject.FindWithTag("BlastAudio").GetComponent<AudioSource>();
     }
 
-    void Start()
+    public void ExecuteGranade(float timeLeft)
     {
-        timeLeft += 1;
-        Invoke("GranadeBlast",timeLeft);
+        StartCoroutine(GranadeBlast(timeLeft));
     }
 
-    void OnDrawGizmos()
+    IEnumerator GranadeBlast(float timeLeft)
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position,granadeRadius);
-    }
+        yield return new WaitForSeconds(timeLeft);
 
-    void GranadeBlast()
-    {
         Instantiate(blastParticles,transform.position,Quaternion.identity);
         blastAudioSource.Play();
         Collider[] hitColliders = Physics.OverlapSphere(transform.position,granadeRadius);
@@ -93,10 +88,5 @@ public class Granade : MonoBehaviour
         int dist = Mathf.RoundToInt(Vector3.Distance(transform.position,pos));
         dist = (dist == 0)? 1: dist;
         return (damage/dist*1);
-    }
-
-    public void GetObject(PlayerFiring playerScript)
-    {
-        player = playerScript;
     }
 }

@@ -150,7 +150,7 @@ public class PowerGeneratorActivator : MonoBehaviour
         if(other.CompareTag("Player") && !Enter)
         {
             Cursor.lockState = CursorLockMode.None;
-            other.GetComponent<PlayerFiring>().StopShootingOrThrowing();
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
             if(!isTriggered)
             {
                 isTriggered = true;
@@ -165,7 +165,7 @@ public class PowerGeneratorActivator : MonoBehaviour
         {
             if(Enter == true){ Exit = true; }
             Cursor.lockState = CursorLockMode.Locked;
-            other.GetComponent<PlayerFiring>().ActivateShootingOrThrowing();
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 

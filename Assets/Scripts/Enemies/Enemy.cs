@@ -3,6 +3,7 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 using System.Collections;
 using StarterAssets;
+using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
@@ -18,45 +19,48 @@ public class Enemy : MonoBehaviour
     [SerializeField] int zombieRotationSpeed;
     public float Speed;
     float angularSpeed;
-    public float stopValue = 1.2f;
+    float stopValue = 1.2f;
+    public float stopValueRef;
 
     public bool isProvoked = false;
     public bool dead = false;
     public bool reBirth = false;
-    public bool acidAttack = false;
     public bool tempPlayerActive = false;
 
     Collider colliderForEnemyLook;
     Vector3 dist;
     Vector3 ditectedObject;
-    BloodSplit bloodSplit;
+    
     AudioSource zombieSounds;
 
     public Vector3 startPos;
     public Slider slider;
     public Animator enemyAnimator;
-    public GameObject orgPlayer;
-    public GameObject player;
-    IsAlive isAlive;
+    
     public Collider destCollider;
     public NavMeshAgent navMesh;
     int radius = 10;
     bool CanMove = true;
+    bool newPath = true;
     [SerializeField] LayerMask layers;
-    float newRadius = 0.5f;
+    public float newRadius = 0.25f;
     Vector3 pos;
-    IsAlive playerIsAlive;
+    public GameObject player;
+    public IsAlive isPlayerAlive;
+    public GameObject playerMountedObject;
+    public IsAlive isPlayerMountedAlive;
 
     [SerializeField] GameObject spawner;
     
     [SerializeField] AudioClip screamingSound;
-    [SerializeField] AudioClip acidSplitSound;
     [SerializeField] ZombieInvicible[] zombieInvicibleArray;
 
     public Vector3 latestHitDir;
     public float latestHitForce;
+    bool isStopped = false;
+    public bool canAttack = true;
  
-    void Awake()
+    protected virtual void Awake()
     {
         slider.gameObject.SetActive(false);
         zombieSounds = GetComponent<AudioSource>();
@@ -66,8 +70,9 @@ public class Enemy : MonoBehaviour
         slider.maxValue = health;
     }
 
-    void OnEnable()
+    protected virtual void OnEnable()
     {
+        stopValueRef = stopValue; 
         if (isActive)
         {
             AudioActivator();
@@ -80,70 +85,111 @@ public class Enemy : MonoBehaviour
         zombieSounds.Play();
     }
 
-    void Start()
+    protected virtual void Start()
     {
         slider.value = health;
         AudioActivator();
         isActive = true;
         startPos = transform.position;
         healthRef = health;
-        bloodSplit = GetComponentInChildren<BloodSplit>();
-        isAlive = player.GetComponent<IsAlive>();
-        playerIsAlive = orgPlayer.GetComponent<IsAlive>();
+        isPlayerAlive = player.GetComponent<IsAlive>();
+        isPlayerMountedAlive = playerMountedObject.GetComponent<IsAlive>();
         enemyAnimator = GetComponentInChildren<Animator>();
-        enemyAnimator.SetFloat("WalkIndex",Random.Range(0,4));
     }
 
-    void Update()
+    protected virtual void Update()
     {
-        if(isAlive.alive && playerIsAlive.alive)
+        if(!dead && isPlayerMountedAlive.alive && isPlayerAlive.alive)
         {
-            Collider[] col = player.GetComponents<Collider>();
-            exactDistance = 0f;
-            float maxDist = Mathf.Infinity;
-            foreach(Collider newCol in col)
+            FindInRangeOrNot();
+
+            if(exactDistance<enemyRange)
             {
-                dist = newCol.ClosestPoint(transform.position);
-                float distance = Vector3.Distance(transform.position,dist);
-                if(distance < maxDist)
-                {
-                    maxDist = distance;
-                    ditectedObject = dist;
-                    exactDistance = maxDist;
-                }
+                if(isStopped){ isStopped = false; }
+                if(enemyAnimator.GetBool("PlayerDead")) { enemyAnimator.SetBool("PlayerDead",false); }
+                isProvoked = true;
             }
         }
-        
+        else if(isProvoked || !isStopped)
+        {
+            isStopped = true;
+            isProvoked = false;
+            StopEverything();
+        }
+
+        Provoked();
+        RandomWalk();
+    }
+
+    void FindInRangeOrNot()
+    {
+        Collider[] col = playerMountedObject.GetComponents<Collider>();
+        exactDistance = 0f;
+        float maxDist = Mathf.Infinity;
+        foreach(Collider newCol in col)
+        {
+            dist = newCol.ClosestPoint(transform.position);
+            float distance = Vector3.Distance(transform.position,dist);
+            if(distance < maxDist)
+            {
+                maxDist = distance;
+                ditectedObject = dist;
+                exactDistance = maxDist;
+            }
+        }
+    }
+
+    void Provoked()
+    {
         if(isProvoked)
         {
             if(!CanMove)
             {
-                StopCoroutine(AnimTimeDelay());
+                StopAllCoroutines();
                 enemyAnimator.SetFloat("WalkIndex",0);
                 CanMove = true;
             }
 
             EnemyProvoked();
         }
-        else if(exactDistance<enemyRange)
-        {
-            CanMove = false;
-            isProvoked = true;
-        }
-        else if(!reBirth)
-        {
-            if(navMesh.remainingDistance <= navMesh.stoppingDistance && !navMesh.hasPath && navMesh.velocity.sqrMagnitude < 0.01f)
-            { 
-                enemyAnimator.SetFloat("WalkIndex",0); 
-            }
+    }
 
-            if(CanMove) { CanMove = false; StartCoroutine(AnimTimeDelay()); }
+    void RandomWalk()
+    {
+        if(!dead && !reBirth && !isProvoked)
+        {
+            if(CanMove)
+            {
+                CanMove = false;
+                StartCoroutine(FindPath());
+            }
         }
     }
 
-    IEnumerator AnimTimeDelay()
+    IEnumerator FindPath()
     {
-        navMesh.speed = 0.3f;
+        bool hasPath = false;
+
+        while(!hasPath)
+        {
+            hasPath = FindAndSetPosition();
+            yield return null;
+        }
+
+        while(navMesh.remainingDistance >= navMesh.stoppingDistance && navMesh.hasPath)
+        {
+            yield return null;
+        }
+
+        enemyAnimator.SetFloat("WalkIndex",0);
+        navMesh.SetDestination(transform.position);
+        navMesh.speed = 0;
+        yield return new WaitForSeconds(Random.Range(5,6));
+        CanMove = true;
+    }
+
+    bool FindAndSetPosition()
+    {
         Vector3 newPosition = Random.insideUnitSphere*radius;
         newPosition += transform.position;
 
@@ -153,120 +199,72 @@ public class Enemy : MonoBehaviour
             NavMeshPath path = new NavMeshPath();
             if(navMesh.CalculatePath(hit.position,path) && path.status == NavMeshPathStatus.PathComplete)
             {
-                pos = hit.position;
                 Collider[] col = Physics.OverlapSphere(hit.position,newRadius,layers);
-
-                if(col.Length == 0)
-                {
-                    int walkIndex = Random.Range(1,4);
-                    enemyAnimator.SetFloat("WalkIndex",walkIndex);
+                if(col.Length == 0) 
+                { 
+                    navMesh.speed = 0.3f;
+                    navMesh.angularSpeed = angularSpeed;
+                    enemyAnimator.SetFloat("WalkIndex",Random.Range(1,4));
                     navMesh.SetDestination(hit.position);
-                }  
+                    newPath = false;
+                    return true;
+                }
             }
         }
 
-        int timeIntervel = Random.Range(10,21);
-        yield return new WaitForSeconds(timeIntervel);
-        CanMove = true;
+        return false;
     }
 
     void EnemyProvoked()
     {
-        if(!dead && isAlive.alive && playerIsAlive.alive)
+        if(exactDistance > stopValueRef + StarterAssetsInputs.starterAssetsInputs.additionalDist || enemyDitected)
         {
-            if(exactDistance > stopValue + StarterAssetsInputs.starterAssetsInputs.additionalDist || enemyDitected)
-            {
-                enemyDitected = false;
-
-                if(bloodSplit)
-                {
-                    if(zombieSounds.clip != acidSplitSound)
-                    {
-                        zombieSounds.Stop();
-                        zombieSounds.clip = acidSplitSound;
-                    }
-                    SpecialPower();
-                }
-                else
-                {
-                    if(zombieSounds.clip != screamingSound)
-                    {
-                        zombieSounds.Stop();
-                        zombieSounds.clip = screamingSound;
-                        zombieSounds.Play();
-                    }
-                    ChaseTarget();
-                }
-            }
-
-            if(exactDistance <= stopValue + StarterAssetsInputs.starterAssetsInputs.additionalDist)
-            {
-                if(zombieSounds.clip != screamingSound)
-                {
-                    zombieSounds.Stop();
-                    zombieSounds.clip = screamingSound;
-                    zombieSounds.Play();
-                }
-                AttackTarget();
-            }
-        }
-        else if(bloodSplit)
-        {
-            bloodSplit.StopAttack();
+            enemyDitected = false;
+            EnemyAudio();
+            Behaviour();
         }
 
-        if(!isAlive.alive || !playerIsAlive.alive)
+        if(exactDistance <= stopValueRef + StarterAssetsInputs.starterAssetsInputs.additionalDist)
         {
-            StopEverything();
+            EnemyAudio();
+            AttackTarget();
         }
     }
 
-    void StopEverything()
+    protected virtual void Behaviour()
     {
-        navMesh.speed = 0;
-        enemyAnimator.SetBool("attack1",false);
-        enemyAnimator.SetBool("attack2",false);
-        enemyAnimator.SetBool("neckAttack",false);
+        ChaseTarget();
+    }
+
+    void EnemyAudio()
+    {
+        if(zombieSounds.clip != screamingSound)
+        {
+            zombieSounds.Stop();
+            zombieSounds.clip = screamingSound;
+            zombieSounds.Play();
+        }
+    }
+
+    protected virtual void StopEverything()
+    {
+        enemyAnimator.SetFloat("AttackType",0f);
         enemyAnimator.SetBool("PlayerDead",true);
     }
 
-    void SpecialPower()
+    public void ChaseTarget()
     {
-        if(exactDistance <= 10 && exactDistance >= 4 && isAlive.alive && playerIsAlive.alive)
-        {
-            enemyAnimator.SetBool("running", false);
-            acidAttack = true;
-            navMesh.speed = 0f;
-            transform.LookAt(player.transform);
-            bloodSplit.transform.LookAt(player.transform);
-            bloodSplit.AcidAttack(exactDistance);
-        }
-        else if(isAlive.alive && playerIsAlive.alive)
-        {
-            bloodSplit.StopAttack();
-            ChaseTarget();
-        }
-        else
-        {
-            acidAttack = false;
-            bloodSplit.StopAttack();
-        }
-    }
-
-    void ChaseTarget()
-    {
-        enemyAnimator.SetBool("attack1", false);
-        enemyAnimator.SetBool("attack2", false);
-        enemyAnimator.SetBool("neckAttack", false);
+        canAttack = true;
+        enemyAnimator.SetFloat("AttackType",0f);
         enemyAnimator.SetBool("running",true);
         navMesh.speed = Speed;
         navMesh.angularSpeed = angularSpeed;
-        navMesh.SetDestination(player.transform.position);
+        navMesh.SetDestination(playerMountedObject.transform.position);
     }
 
     void AttackTarget()
     {
-        Vector3 rotation = player.transform.position - transform.position;
+        Vector3 rotation = playerMountedObject.transform.position - transform.position;
         rotation.y = 0;
         Quaternion newRotation = Quaternion.LookRotation(rotation);
         transform.rotation = Quaternion.Slerp(transform.rotation,newRotation,Time.deltaTime*zombieRotationSpeed);
@@ -274,20 +272,16 @@ public class Enemy : MonoBehaviour
         enemyAnimator.SetBool("running", false);
         navMesh.speed = 0;
         navMesh.angularSpeed = 0;
-        int zombieAnim = Random.Range(0,3);
+        if(canAttack)
+        {
+            canAttack = false;
+            enemyAnimator.SetFloat("AttackType",CurrentAttackType());
+        }
+    }
 
-        if(zombieAnim == 0)
-        {
-            enemyAnimator.SetBool("attack1",true);
-        }
-        else if(zombieAnim == 1)
-        {
-            enemyAnimator.SetBool("neckAttack",true);
-        }
-        else
-        {
-            enemyAnimator.SetBool("attack2",true);
-        }
+    protected virtual float CurrentAttackType()
+    {
+        return Random.Range(1f,3f);
     }
 
     public void TakeDamage(int damage , Vector3 hitDirection , float hitForce)
@@ -302,7 +296,7 @@ public class Enemy : MonoBehaviour
             {
                 if(!CanMove)
                 {
-                    StopCoroutine(AnimTimeDelay());
+                    StopAllCoroutines();
                     enemyAnimator.SetFloat("WalkIndex",0);
                 }
                 enemyDitected = true;
@@ -327,14 +321,10 @@ public class Enemy : MonoBehaviour
             }
             else if(healthRef >= 10 && healthRef <= 20)
             {
-                int zombieAnim = Random.Range(0,2);
-                if(zombieAnim == 0)
+                if(!enemyAnimator.GetBool("crawl"))
                 {
-                    enemyAnimator.SetBool("crawl",true);   
-                }
-                else if(zombieAnim == 1)
-                {
-                    enemyAnimator.SetBool("walk",true);
+                    stopValueRef = stopValueRef - 0.8f;
+                    enemyAnimator.SetBool("crawl",true);
                 }
             }
         }
@@ -394,6 +384,32 @@ public class Enemy : MonoBehaviour
 
     public IsAlive AliveChanger
     {
-        set { isAlive = value; }
+        set { isPlayerMountedAlive = value; }
     }
+
+    /*public void IfActiveSetIdle(GameObject currrentPlayerObject)
+    {
+        Debug.Log("Triggered");
+        if(!dead)
+        {   
+            Debug.Log("inside");
+            ToggleEnemyAttack();
+        }
+        player = currrentPlayerObject;
+    }*/
+
+    /*protected virtual void ToggleEnemyAttack()
+    {
+        if(!enemyAnimator.GetBool("PlayerDead") && isProvoked)
+        {
+            Debug.Log("hello");
+            StopEverything();
+        }
+        else if(isProvoked)
+        {
+            Debug.Log("hi");
+            enemyAnimator.SetBool("PlayerDead",false);
+            navMesh.speed = Speed;
+        }
+    }*/
 }

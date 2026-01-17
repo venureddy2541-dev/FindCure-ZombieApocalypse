@@ -25,7 +25,7 @@ public class EnemySpawner : MonoBehaviour
     Vector3[] spawnPos = { new Vector3(-6f, 0, 0), new Vector3(6f, 0, 0), new Vector3(0, 0, -6f), new Vector3(0, 0, 6f) };
     public List<Enemy> enemies = new List<Enemy>();
 
-    public string damageTaker;
+    public EnemyTarget damageTaker;
     
     [SerializeField] GameObject orgPlayer;
     public GameObject attackPos;
@@ -108,11 +108,11 @@ public class EnemySpawner : MonoBehaviour
             int enemyIndex = Random.Range(0, enemyType.Length);
             int enemyPosIndex = Random.Range(0, spawnPos.Length);
             Enemy enemy = Instantiate(enemyType[enemyIndex], transform.position + spawnPos[enemyPosIndex], Quaternion.identity).GetComponent<Enemy>();
-            enemy.player = attackPos;
-            enemy.orgPlayer = orgPlayer;
-            enemy.GetComponentInChildren<DamageManager>().aventName = damageTaker;
+            enemy.playerMountedObject = attackPos;
+            enemy.player = orgPlayer;
+            enemy.GetComponentInChildren<DamageManager>().enemyTarget = damageTaker;
             enemy.gameObject.SetActive(false);
-            enemy.gameObject.transform.parent = Storage.transform;
+            enemy.transform.parent = Storage.transform;
             enemy.reBirth = true;
             enemies.Add(enemy);
         }

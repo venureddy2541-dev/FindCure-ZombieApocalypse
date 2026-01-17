@@ -12,7 +12,7 @@ public class Ammo : MonoBehaviour
     {
         if(other.CompareTag("Player"))
         {
-            bool canDestroy = other.GetComponent<PlayerFiring>().BulletAdder(AmmoSize,maxAmmo,ammoIndexNumber);
+            bool canDestroy = other.GetComponent<WeaponHandle>().AssignAmmo(AmmoSize,maxAmmo,ammoIndexNumber);
             if(canDestroy)
             {
                 Destroy(gameObject);

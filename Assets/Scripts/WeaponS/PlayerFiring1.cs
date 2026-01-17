@@ -7,79 +7,79 @@ using System.Collections.Generic;
 using StarterAssets;
 using UnityEngine.UI;
 
-public class PlayerFiring : MonoBehaviour
+public class PlayerFiring1 : MonoBehaviour
 {
-    [SerializeField] Transform particleHolder;
+    public Transform particleHolder;
     public GameObject playerWeaponPos;
     bool gamePaused = false;
-    [SerializeField] Weapon pW;
-
-    MessageBox messageBox;
+    public WeaponData pW;
 
     [Header("TimeBomb")]
-    [SerializeField] GameObject timeBombObject;
+    public GameObject timeBombObject;
     public bool timeBomb = false;
     public int timeBombCount;
-    [SerializeField] AudioSource blastAudioSource;
-    [SerializeField] GameObject blastParticle;
-    [SerializeField] TMP_Text timeBombText;
+    public AudioSource blastAudioSource;
+    public GameObject blastParticle;
+    public TMP_Text timeBombText;
     public List<GameObject> bombPlantAreas = new List<GameObject>();
 
     [Header("Granade Values")]
-    [SerializeField] GameObject bullet;
-    [SerializeField] Transform bulletPos;
-    [SerializeField] AudioClip granadeThrowSound;
-    [SerializeField] TMP_Text granadeCountText;
+    public GameObject bullet;
+    public Transform bulletPos;
+    public AudioClip granadeThrowSound;
+    public TMP_Text granadeCountText;
     public TMP_Text granadeTimeText;
     Vector3 direction;
     public bool granadeSelected = false;
     bool canThrough = true;
     bool toguleWG = false;
-    [SerializeField] float speed = 100f;
+    public float speed = 100f;
 
     [Header("Cinemachine Components")]
-    [SerializeField] CinemachineImpulseSource weaponShake;
-    [SerializeField] CinemachineCamera playerCamera;
+    public CinemachineImpulseSource weaponShake;
+    public CinemachineCamera playerCamera;
+
+    public Animator weaponAnimator;
     public List<Animator> gunAnimater;
 
     [Header("WeaponHitEffects")]
     public List<ParticleSystem> mazelFlash;
-    [SerializeField] ParticleSystem electricShieldHitEffect;
-    [SerializeField] ParticleSystem enemyHitEffect;
-    [SerializeField] ParticleSystem[] enemyHitEffects;
+    public ParticleSystem electricShieldHitEffect;
+    public ParticleSystem enemyHitEffect;
+    public ParticleSystem[] enemyHitEffects;
     int enemyHitEffectsIndex = 0;
-    [SerializeField] ParticleSystem enemyHitEffect1;
-    [SerializeField] ParticleSystem sandHitEffect;
-    [SerializeField] ParticleSystem[] sandHitEffects;
+    public ParticleSystem enemyHitEffect1;
+    public ParticleSystem sandHitEffect;
+    public ParticleSystem[] sandHitEffects;
     int sandHitEffectsIndex = 0;
-    [SerializeField] ParticleSystem stoneHitEffect;
-    [SerializeField] ParticleSystem hitGlassEffect;
-    [SerializeField] ParticleSystem woodHitEffect;
-    [SerializeField] ParticleSystem[] woodHitEffects;
+    public ParticleSystem stoneHitEffect;
+    public ParticleSystem hitGlassEffect;
+    public ParticleSystem woodHitEffect;
+    public ParticleSystem[] woodHitEffects;
     int woodHitEffectsIndex = 0;
-    [SerializeField] ParticleSystem metalHitEffect;
-    [SerializeField] ParticleSystem[] metalHitEffects;
+    public ParticleSystem metalHitEffect;
+    public ParticleSystem[] metalHitEffects;
     int metalHitEffectsIndex = 0;
-    [SerializeField] ParticleSystem shootGunMetalHitEffect;
+    public ParticleSystem shootGunMetalHitEffect;
 
-    [SerializeField] LayerMask playerHitLayers;
+    public LayerMask playerHitLayers;
     public GameObject flashLight;
-    [SerializeField] GameObject scopeZoomImage1;
-    [SerializeField] GameObject scopeZoomImage2;
+    public GameObject scopeZoomImage1;
+    public GameObject scopeZoomImage2;
     public GameObject crossHair;
-    [SerializeField] GameObject weaponTexts;
+    public GameObject weaponTexts;
 
     [Header("WeaponSounds")]
-    [SerializeField] AudioSource gunAudioSource;
-    [SerializeField] AudioClip electricShieldSound;
-    [SerializeField] AudioClip woodHitSound;
-    [SerializeField] AudioClip wallHitSound;
-    [SerializeField] AudioClip glassHitSound;
-    [SerializeField] AudioClip metalHitSound;
-    [SerializeField] AudioClip sandHitSound;
-    [SerializeField] AudioClip enemyHitSound;
-    [SerializeField] AudioClip emptyGunSound;
-    [SerializeField] AudioClip collectSound;
+    public AudioSource gunAudioSource;
+    public AudioClip electricShieldSound;
+    public AudioClip woodHitSound;
+    public AudioClip wallHitSound;
+    public AudioClip glassHitSound;
+    public AudioClip metalHitSound;
+    public AudioClip sandHitSound;
+    public AudioClip enemyHitSound;
+    public AudioClip emptyGunSound;
+    public AudioClip collectSound;
 
     [Header("AmmoTexts")]
     public TMP_Text magText;
@@ -92,11 +92,11 @@ public class PlayerFiring : MonoBehaviour
     int granadeCount;
     int tempMag;
     int temp;
-    int count = 0;
+    public int count = 0;
     int onZoomVal = 1;
     int originalZooom = 40;
 
-    bool isEmpty = false;
+    public bool isEmpty = false;
 
     //flashLight On and Off
     bool isOn = false;
@@ -119,13 +119,8 @@ public class PlayerFiring : MonoBehaviour
     public bool cantShoot = false;
 
     float reloadTime;
-    [SerializeField] float volume;
+    public float volume;
     TimeBomb timeBombRef;
-    
-    void Awake()
-    {
-        messageBox = GameObject.FindWithTag("MessageBox").GetComponent<MessageBox>();
-    }
 
     void OnEnable()
     {
@@ -173,7 +168,7 @@ public class PlayerFiring : MonoBehaviour
         }
     }
 
-    void OnZoom(InputValue other)
+    protected virtual void OnZoom(InputValue other)
     {
         willZoom = other.isPressed;
         if (willZoom && canZoom && count != 2 && count != 4)
@@ -186,7 +181,7 @@ public class PlayerFiring : MonoBehaviour
         }
     }
 
-    public virtual void ZoomIn()
+    protected virtual void ZoomIn()
     {
         crossHair.SetActive(false);
         if (count == 1)
@@ -202,7 +197,7 @@ public class PlayerFiring : MonoBehaviour
         playerCamera.Lens.FieldOfView = zoomDistance;
     }
 
-    public virtual void ZoomOut()
+    protected virtual void ZoomOut()
     {
         crossHair.SetActive(true);
         if (count == 1)
@@ -239,7 +234,7 @@ public class PlayerFiring : MonoBehaviour
         GameObject gb = Instantiate(bullet, bulletPos.position, bulletPos.rotation);
         Granade granadeSc = gb.GetComponent<Granade>();
         granadeSc.timeLeft = Mathf.RoundToInt(time);
-        granadeSc.GetObject(this);
+        //granadeSc.GetObject(this);
         Rigidbody rb = gb.GetComponent<Rigidbody>();
         rb.AddRelativeForce(Vector3.forward * speed, ForceMode.Impulse);
     }
@@ -268,17 +263,7 @@ public class PlayerFiring : MonoBehaviour
         fired = other.isPressed;
         if (idle && magSize[count] > 0)
         {
-            if (fired && !reloaded && count != 1 && count != 4 && shootRate)
-            {
-                OnFire();
-            }
-            else if (count == 1 || count == 4)
-            {
-                if (!reloaded)
-                {
-                    StartCoroutine("Firing");
-                }
-            }
+            FireTriggered();
         }
 
         if (!weaponState && toguleWG)
@@ -295,6 +280,21 @@ public class PlayerFiring : MonoBehaviour
             {
                 granadeThrown = false;
                 GranadeExicuted();
+            }
+        }
+    }
+
+    protected virtual void FireTriggered()
+    {
+        if (fired && !reloaded && count != 1 && count != 4 && shootRate)
+        {
+            OnFire();
+        }
+        else if (count == 1 || count == 4)
+        {
+            if (!reloaded)
+            {
+                StartCoroutine("Firing");
             }
         }
     }
@@ -318,12 +318,12 @@ public class PlayerFiring : MonoBehaviour
         }
     }
 
-    void OnFire()
+    protected virtual void OnFire()
     {
         if (magSize[count] > 0)
-        {
+        { 
             shootRate = false;
-            weaponShake.GenerateImpulse(new Vector3(0, 0, 1f) * pW.impulseVal * onZoomVal);
+            //weaponShake.GenerateImpulse(new Vector3(0, 0, 1f) * pW.impulseVal * onZoomVal);
             GunAnimation();
             MazelFlash();
             if (count != 4) { Shoot(); }
@@ -344,7 +344,6 @@ public class PlayerFiring : MonoBehaviour
             {
                 gunAudioSource.PlayOneShot(emptyGunSound);
             }
-            messageBox.PressentMessage("OUT OF AMMO", null);
         }
     }
 
@@ -394,7 +393,6 @@ public class PlayerFiring : MonoBehaviour
         else
         {
             reloading = true;
-            messageBox.PressentMessage("OUT OF AMMO", null);
         }
     }
 
@@ -608,7 +606,7 @@ public class PlayerFiring : MonoBehaviour
             }
             else
             {
-                messageBox.PressentMessage("Go close to the object and press X to place the TimeBomb", null);
+                MessageBox.messageBox.PressentMessage("Go close to the object and press X to place the TimeBomb", null);
             }
         }
     }
@@ -637,7 +635,7 @@ public class PlayerFiring : MonoBehaviour
         return damage;
     }
 
-    public void WeaponAssigner(Weapon weaponType, int indexNo)
+    public void WeaponAssigner(WeaponData weaponType, int indexNo)
     {
         pW = weaponType;
         count = indexNo;

@@ -33,7 +33,7 @@ public class BloodSplit : MonoBehaviour
         isSpliting = false;
         while(!isSpliting && isAttacking)
         {
-            animator.SetBool("attack3",true);
+            animator.SetBool("AcidAttack",true);
             acidBlood.Play();
             audioSource.Play();
             while(value < 3f)
@@ -46,7 +46,7 @@ public class BloodSplit : MonoBehaviour
                 yield return null;
                 if(isSpliting) break;
             }
-            animator.SetBool("attack3",false);
+            animator.SetBool("AcidAttack",false);
             
             isAttacking = false;
             if(value >= 3f)
@@ -78,7 +78,7 @@ public class BloodSplit : MonoBehaviour
     {
         isSpliting = true;
         acidBlood.Stop();
-        animator.SetBool("attack3",false);
+        animator.SetBool("AcidAttack",false);
     }
 
     void OnParticleCollision(GameObject gb)

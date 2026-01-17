@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Enterence : MonoBehaviour
 {
-    [SerializeField] MessageBox messageBox;
     [SerializeField] AudioClip ac;
     [SerializeField] string msg;
     public bool triggered = true;
@@ -12,7 +11,7 @@ public class Enterence : MonoBehaviour
         if(other.CompareTag("Player") && triggered)
         {
             triggered = false;
-            messageBox.PressentMessage(msg,ac);
+            MessageBox.messageBox.PressentMessage(msg,ac);
         }
     }
 }

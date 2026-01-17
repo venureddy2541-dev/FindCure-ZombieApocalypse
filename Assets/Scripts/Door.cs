@@ -8,7 +8,7 @@ public class Door : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.None;
-            other.gameObject.GetComponent<PlayerFiring>().StopShootingOrThrowing();
+            other.gameObject.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
         }
     }
 
@@ -17,7 +17,7 @@ public class Door : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.Locked;
-            other.gameObject.GetComponent<PlayerFiring>().ActivateShootingOrThrowing();
+            other.gameObject.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 }

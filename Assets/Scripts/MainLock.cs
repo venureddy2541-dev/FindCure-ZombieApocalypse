@@ -14,7 +14,6 @@ public class MainLock : MonoBehaviour
     [SerializeField] GameObject playerUI;
     [SerializeField] GameObject scanButton;
     [SerializeField] AudioClip accessGranted;
-    MessageBox messageBox;
     [SerializeField] AudioSource switchAS;
     [SerializeField] AudioClip switchAC;
     GameObject player;
@@ -24,7 +23,6 @@ public class MainLock : MonoBehaviour
     void Start()
     {
         pd = GetComponent<PlayableDirector>();
-        messageBox = GameObject.FindWithTag("MessageBox").GetComponent<MessageBox>();
     }
 
     void OnTriggerStay(Collider other)
@@ -32,7 +30,7 @@ public class MainLock : MonoBehaviour
         if(other.CompareTag("Player") && !triggered)
         {
             Cursor.lockState = CursorLockMode.None;
-            other.GetComponent<PlayerFiring>().StopShootingOrThrowing();
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
             player = other.gameObject;
             scanButton.SetActive(true);     
         }
@@ -43,7 +41,7 @@ public class MainLock : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.Locked;
-            other.GetComponent<PlayerFiring>().ActivateShootingOrThrowing();
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
             scanButton.SetActive(false);     
         }
     }
@@ -76,7 +74,7 @@ public class MainLock : MonoBehaviour
     public void End()
     {
         screen.GetComponent<Image>().color = Color.green;
-        messageBox.PressentMessage("access granted",accessGranted);
+        MessageBox.messageBox.PressentMessage("access granted",accessGranted);
         StartCoroutine(Blinker());
     }
 

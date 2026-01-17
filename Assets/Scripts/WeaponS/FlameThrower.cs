@@ -1,45 +1,62 @@
 using UnityEngine;
+using System.Collections;
 
-public class FlameThrower : PlayerFiring
+public class FlameThrower : WeaponType
 {
-    [SerializeField] float weaponEndPoint = 1.5f;
-    [SerializeField] Material mainMat;
-    [SerializeField] Material transperantMat;
-    Transform weaponPos;
-    [SerializeField] GameObject flameThrower;
-    WeaponHandle weaponHandle;
-    PlayerFiring playerFiring;
-    GameObject player;
-    GameObject pauseManager;
-    bool triggered = false;
-
-    void Awake()
+    public override bool Zoom(bool zoomState)
     {
-        pauseManager = GameObject.FindWithTag("Manager");
-        if(pauseManager.transform.Find(gameObject.name))
+        return true;
+    }
+
+    public override void Fire(bool fired)
+    {
+        this.fired = fired;
+        if (!reloaded)
         {
-            Destroy(gameObject);
+            StartCoroutine("Firing");
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    IEnumerator Firing()
     {
-        if(other.CompareTag("Player") && !triggered)
+        while (fired)
         {
-            triggered = true;
-            WeaponAssigner();
+            OnFire();
+            yield return new WaitForSeconds(weaponData.fireRate);
         }
     }
 
-    public void WeaponAssigner()
+    protected override void OnFire()
     {
-        player = GameObject.FindWithTag("Player");
-        playerFiring = player.GetComponent<PlayerFiring>();
-        weaponHandle = player.GetComponent<WeaponHandle>();
-        weaponPos = GameObject.FindWithTag("PlayerWeaponsHolder").transform;
-        GameObject newWeapon = Instantiate(flameThrower,new Vector3(weaponPos.position.x,weaponPos.position.y + 0.15f,weaponPos.position.z),weaponPos.rotation,weaponPos);
-        newWeapon.SetActive(false);
-        weaponHandle.NewWeaponAssignier(newWeapon,mainMat,transperantMat,weaponEndPoint);
-        transform.GetChild(0).gameObject.SetActive(false);
+        if (magSize > 0)
+        {
+            magSize--;
+            magText.text = magSize.ToString() + "/" + storageSize.ToString();
+
+            if (!gunAudioSource.isPlaying)
+            {
+                gunAudioSource.clip = weaponData.weaponSound;
+                gunAudioSource.Play();
+                var emission = mazilFlash.emission;
+                emission.enabled = true;
+            }
+
+            if (magSize == 0)
+            {
+                gunAudioSource.Stop();
+                fired = false;
+                var emission = mazilFlash.emission;
+                emission.enabled = fired;
+                if(storageSize > 0) { base.ToggleWeaponReload(true); }
+            }
+        }
+        else if (storageSize == 0)
+        {
+            if (!gunAudioSource.isPlaying)
+            {
+                gunAudioSource.PlayOneShot(audioClips.emptyGunSound);
+            }
+            MessageBox.messageBox.PressentMessage("OUT OF AMMO", null);
+        }
     }
 }

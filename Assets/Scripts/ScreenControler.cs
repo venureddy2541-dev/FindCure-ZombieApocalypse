@@ -10,7 +10,6 @@ public class ScreenControler : MonoBehaviour
     [SerializeField] CinemachineCamera screenCam;
     [SerializeField] GameObject player;
     PlayerInput playerIS;
-    PlayerFiring playerFiring;
     WeaponHandle weaponHandle;
     int scrollVal = 1;
 

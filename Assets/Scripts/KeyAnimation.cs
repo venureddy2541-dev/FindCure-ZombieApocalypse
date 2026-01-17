@@ -14,7 +14,7 @@ public class KeyAnimation : MonoBehaviour
     [SerializeField] GameObject playerUI;
     [SerializeField] AudioSource switchAS;
     [SerializeField] AudioClip switchAC;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
     bool triggered = false;
 
     void Start()
@@ -29,8 +29,8 @@ public class KeyAnimation : MonoBehaviour
         if(other.CompareTag("Player") && !triggered)
         {
             Cursor.lockState = CursorLockMode.None;
-            playerFiring = other.GetComponent<PlayerFiring>();
-            playerFiring.StopShootingOrThrowing();
+            playerManager = other.GetComponent<PlayerManager>();
+            playerManager.ToggleShootingOrThrowing(FireStateEnum.CantFire);
             getKey.SetActive(true);
         }
     }
@@ -40,7 +40,7 @@ public class KeyAnimation : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.Locked;
-            playerFiring.ActivateShootingOrThrowing();
+            playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
             getKey.SetActive(false);
         }
     }
@@ -53,7 +53,7 @@ public class KeyAnimation : MonoBehaviour
         triggered = true;
         playerUI.SetActive(false);
         getKey.SetActive(false);
-        playerFiring.gameObject.SetActive(false);
+        playerManager.gameObject.SetActive(false);
         animPlayer.SetActive(true);
         Cam.SetActive(true);
         Invoke("WaitTime",2f);
@@ -69,8 +69,8 @@ public class KeyAnimation : MonoBehaviour
         passCode.text = "Key : " + finalStagePasswordChecker.Password;
         Cursor.lockState = CursorLockMode.Locked;
         playerUI.SetActive(true);
-        playerFiring.ActivateShootingOrThrowing();
-        playerFiring.gameObject.SetActive(true);
+        playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
+        playerManager.gameObject.SetActive(true);
         gameObject.SetActive(false);
     }
 }

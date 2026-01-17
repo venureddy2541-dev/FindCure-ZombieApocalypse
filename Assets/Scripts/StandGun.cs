@@ -54,7 +54,7 @@ public class StandGun : MonoBehaviour
     [SerializeField] Waves waves;
 
     GameObject player;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
     PlayerHealth playerHealth;
     [SerializeField] float hitForce;
 
@@ -213,16 +213,16 @@ public class StandGun : MonoBehaviour
         if(gunHealthRef <= 0 && triggered)
         {
             triggered = false;
-            isAlive.alive = false;
             activated = false;
             Deactivator();
-            EnemyTarget("player",player);
+            ChangeEnemyTarget(EnemyTarget.player,player);
+            isAlive.alive = false;
             blastAnim.Play();
             blastSounds.Play();
         }
     }
 
-    public void EnemyTarget(string targetName , GameObject targetPos)
+    public void ChangeEnemyTarget(EnemyTarget targetName , GameObject targetPos)
     {
         enemyAttackTransition.ChangingObject(enemySpawners,targetName,targetPos,zombieStopDistance);
     }
@@ -262,6 +262,6 @@ public class StandGun : MonoBehaviour
     {
         player = playerRef;
         playerHealth = playerRef.GetComponent<PlayerHealth>();
-        playerFiring = playerRef.GetComponent<PlayerFiring>();
+        playerManager = playerRef.GetComponent<PlayerManager>();
     }
 }

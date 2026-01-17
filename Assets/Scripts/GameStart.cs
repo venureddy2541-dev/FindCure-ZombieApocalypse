@@ -12,10 +12,10 @@ public class GameStart : MonoBehaviour
     [SerializeField] GameObject audioMB;
     [SerializeField] EnemySpawner enemySpawner1;
     [SerializeField] EnemySpawner enemySpawner2;
-    [SerializeField] Enemy enemy1;
-    [SerializeField] Enemy enemy2;
-    [SerializeField] Enemy enemy3;
-    [SerializeField] Enemy enemy4;
+    [SerializeField] Enemy skinLessZombie;
+    [SerializeField] Enemy scarryZombie;
+    [SerializeField] Enemy fastZombie;
+    [SerializeField] Enemy giantZombie;
     [SerializeField] Robot robot;
     [SerializeField] RoboBomb roboBomb;
     [SerializeField] WalkingRobots walkingRobots;
@@ -72,15 +72,15 @@ public class GameStart : MonoBehaviour
         audioSource.Play();
     }
 
-    void Health(int spawnerHealth1,int spawnerHealth2,int enemyHealht1,int enemyHealht2,int enemyHealht3,int enemyHealht4,int robotHealth,int roboBombHealth,int walkingRobotsHealth)
+    void Health(int spawnerHealth1,int spawnerHealth2,int skinLessZombieHealth,int scarryZombieHealth,int fastZombieHealth,int giantZombieHealth,int robotHealth,int roboBombHealth,int walkingRobotsHealth)
     {
         enemySpawner1.Health = spawnerHealth1;
         enemySpawner2.Health = spawnerHealth2;
 
-        enemy1.Health = enemyHealht1;
-        enemy2.Health = enemyHealht2;
-        enemy3.Health = enemyHealht3;
-        enemy4.Health = enemyHealht4;
+        skinLessZombie.Health = skinLessZombieHealth;
+        scarryZombie.Health = scarryZombieHealth;
+        fastZombie.Health = fastZombieHealth;
+        giantZombie.Health = giantZombieHealth;
 
         robot.Health = robotHealth;
         roboBomb.Health = roboBombHealth;

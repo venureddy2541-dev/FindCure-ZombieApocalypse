@@ -5,6 +5,12 @@ public class MessageBox : MonoBehaviour
 {
     TMP_Text msgText;
     AudioSource audioSource;
+    public static MessageBox messageBox;
+
+    void Awake()
+    {
+        messageBox = this;
+    }
 
     void Start()
     {

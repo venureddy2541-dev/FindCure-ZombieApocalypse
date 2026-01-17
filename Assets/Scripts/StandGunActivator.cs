@@ -4,7 +4,7 @@ public class StandGunActivator : MonoBehaviour
 {
     [SerializeField] AudioSource standGunAS;
     [SerializeField] AudioClip switchAC;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
     PlayerHealth playerHealth;
     GameObject player;
 
@@ -16,9 +16,9 @@ public class StandGunActivator : MonoBehaviour
         {
             player = other.gameObject;
             Cursor.lockState = CursorLockMode.None;
-            playerFiring = other.GetComponent<PlayerFiring>();
+            playerManager = other.GetComponent<PlayerManager>();
             playerHealth = other.GetComponent<PlayerHealth>();
-            playerFiring.StopShootingOrThrowing();
+            playerManager.ToggleShootingOrThrowing(FireStateEnum.CantFire);
         }
     }
 
@@ -27,7 +27,7 @@ public class StandGunActivator : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.Locked;
-            playerFiring.ActivateShootingOrThrowing();
+            playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 
@@ -35,7 +35,7 @@ public class StandGunActivator : MonoBehaviour
     {
         standGunAS.PlayOneShot(switchAC);
 
-        if(playerFiring.GamePaused || !playerFiring.reloading || standGun.gunHealthRef <= 0){ return; }
+        if(playerManager.GamePaused || /*!playerManager.reloading*/ standGun.gunHealthRef <= 0){ return; }
 
         standGun.AssignPlayer(player);
         playerHealth.ActivateStandGunMode();

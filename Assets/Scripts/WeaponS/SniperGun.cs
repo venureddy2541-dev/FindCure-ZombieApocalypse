@@ -1,14 +1,6 @@
 using UnityEngine;
 
-public class SniperGun : PlayerFiring
+public class SniperGun : WeaponType
 {
-    public override void ZoomIn()
-    {
-        
-    }
 
-    public override void ZoomOut()
-    {
-        
-    }
 }

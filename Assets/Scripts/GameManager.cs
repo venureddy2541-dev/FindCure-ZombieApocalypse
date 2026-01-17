@@ -42,8 +42,9 @@ public class GameManager : MonoBehaviour
     MusicPlayer musicPlayer;
 
     public GameObject player;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
     PlayerHealth playerHealth;
+    WeaponHandle weaponHandle;
 
     public Car car;
     public StandGun standGun;
@@ -61,8 +62,9 @@ public class GameManager : MonoBehaviour
         gameManager = this;
         DontDestroyOnLoad(gameObject);
         player = GameObject.FindWithTag("Player");
-        playerFiring = player.GetComponent<PlayerFiring>();
+        playerManager = player.GetComponent<PlayerManager>();
         playerHealth = player.GetComponent<PlayerHealth>();
+        weaponHandle = player.GetComponent<WeaponHandle>();
         audioManager = AudioManager.audioManager;
         musicPlayer = audioManager.musicPlayerRef;
         musicPlayer.ResetMusicPlayer();
@@ -91,18 +93,6 @@ public class GameManager : MonoBehaviour
                 StartCoroutine(PlayerSpawnWaitTime());
             }
 
-            if(level > 4)
-            {
-                tempWeapon = GameObject.FindWithTag("PickableWeapon");
-                tempWeapon.transform.parent = transform;
-                tempWeapon.GetComponent<FlameThrower>().WeaponAssigner();
-            }
-            
-            if(level > 0 && level < 6) 
-            { 
-                passcodePrinter.text = "code : " + passKeys[level - 1]; 
-            }
-
             continueState = false;
         }
     }
@@ -112,16 +102,31 @@ public class GameManager : MonoBehaviour
         while (player == null)
         {
             player = GameObject.FindWithTag("Player");
-            playerFiring = player.GetComponent<PlayerFiring>();
-            playerHealth = player.GetComponent<PlayerHealth>();
             yield return null;
         }
+
+        playerManager = player.GetComponent<PlayerManager>();
+        playerHealth = player.GetComponent<PlayerHealth>();
+        weaponHandle = player.GetComponent<WeaponHandle>();
         
         PlacingPlayer();
-        playerFiring.WeaponActivator();
+        playerManager.WeaponActivator();
         currencyBoard = GameObject.FindWithTag("CurrencyText").GetComponent<TMP_Text>();
+
+        if(level > 4)
+        {
+            tempWeapon = GameObject.FindWithTag("PickableWeapon");
+            tempWeapon.transform.parent = transform;
+            tempWeapon.GetComponent<FlameThrowerAssignier>().WeaponAssigner();
+        }
+        
+        if(level > 0 && level < 6) 
+        { 
+            passcodePrinter.text = "code : " + passKeys[level - 1]; 
+        }
+
         if(level > 0) { UpdateInventory(); }
-        else { currency = 300; UpdateCash(0); }
+        else { currency = 300; UpdateCash(0); weaponHandle.UpdateInitialAmmo();}
     }
 
     void PlacingPlayer()
@@ -136,12 +141,8 @@ public class GameManager : MonoBehaviour
         currency = 0;
         UpdateCash(currencyRef);
         playerHealth.UpdateHealthText(healthKitCountRef);
-        playerFiring.UpdateGranadeText(granadeCountRef);
-        playerFiring.storageSize.Clear();
-        foreach(int ammoRef in Ammo)
-        {
-            playerFiring.storageSize.Add(ammoRef);
-        }
+        playerManager.UpdateGranadeText(granadeCountRef);
+        weaponHandle.UpdateAmmoSizes(Ammo);
     }
 
     public bool GamePause
@@ -207,7 +208,7 @@ public class GameManager : MonoBehaviour
         {
             case "player" :
 
-                    playerFiring.ContinueState();
+                    playerManager.ContinueState();
                     break;
 
             case "standgun" :
@@ -252,16 +253,16 @@ public class GameManager : MonoBehaviour
     {
         level++;
         
-        ManageInventory(playerHealth.HealthKitCount,playerFiring.GranadeCount,playerFiring.storageSize,currency);
+        ManageInventory(playerHealth.HealthKitCount,playerManager.GranadeCount,weaponHandle.CurrentAmmoSizes(),currency);
     }
 
-    void ManageInventory(int healthKitCount,int granadeCount,List<int> storageSize,int presentCurrency)
+    void ManageInventory(int healthKitCount,int granadeCount,List<int> ammoSize,int presentCurrency)
     {
         Ammo.Clear();
         currencyRef = presentCurrency;
         granadeCountRef = granadeCount;
         healthKitCountRef = healthKitCount;
-        foreach(int ammoRef in storageSize)
+        foreach(int ammoRef in ammoSize)
         {
             Ammo.Add(ammoRef);
         }
@@ -328,8 +329,9 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-        playerFiring.WeaponActivator();
+        playerManager.WeaponActivator();
         currencyBoard = GameObject.FindWithTag("CurrencyText").GetComponent<TMP_Text>();
+        weaponHandle.UpdateInitialAmmo();
         UpdateCash(0);
         gameLoadImage.gameObject.SetActive(false);
         playerInput.enabled = true;

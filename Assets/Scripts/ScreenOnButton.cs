@@ -6,11 +6,9 @@ public class ScreenOnButton : MonoBehaviour
 {
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject screen;
-    [SerializeField] GameObject crossHair;
     [SerializeField] CinemachineCamera screenCam;
     [SerializeField] GameObject player;
     PlayerInput playerIS;
-    PlayerFiring playerFiring;
     WeaponHandle weaponHandle;
 
     void Awake()
@@ -18,12 +16,12 @@ public class ScreenOnButton : MonoBehaviour
         playerIS = player.GetComponent<PlayerInput>();
     }
 
-    void OnTriggerEnter(Collider other)
+    void OnTriggerStay(Collider other)
     {
         if(other.CompareTag("Player"))
         {
-            crossHair.SetActive(false);
             Cursor.lockState = CursorLockMode.None;
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
         }
     }
     
@@ -31,8 +29,8 @@ public class ScreenOnButton : MonoBehaviour
     {
         if(other.CompareTag("Player"))
         {
-            crossHair.SetActive(true);
             Cursor.lockState = CursorLockMode.Locked;
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 

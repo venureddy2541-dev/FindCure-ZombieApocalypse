@@ -7,7 +7,6 @@ public class FinalStage : MonoBehaviour
     [SerializeField] GameObject lockText;
     [SerializeField] GameObject indiCator;
     [SerializeField] GameObject generatorPath;
-    MessageBox messageBox;
     [SerializeField] AudioClip ac;
     [SerializeField] AudioClip firingRobotsActivated;
     [SerializeField] AudioClip elivatorActive;
@@ -24,7 +23,6 @@ public class FinalStage : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        messageBox = GameObject.FindWithTag("MessageBox").GetComponent<MessageBox>();
     }
 
     public void NormalRobotsDeadCount()
@@ -32,7 +30,7 @@ public class FinalStage : MonoBehaviour
         count--;
         if(count == 4)
         {
-            messageBox.PressentMessage("Warning: Autonomous defense systems activated",firingRobotsActivated);
+            MessageBox.messageBox.PressentMessage("Warning: Autonomous defense systems activated",firingRobotsActivated);
             //count = 4;
             PlayerHealthIncreaser(Player,1000);
             Invoke("AcctivateFiringRobots",5);
@@ -43,7 +41,7 @@ public class FinalStage : MonoBehaviour
             GameManager.gameManager.ManageLevel();
             transform.parent = gameManager.transform;
             GameManager.gameManager.levels.Add(gameObject);
-            messageBox.PressentMessage("All Clear - Proceed to the Elevator",elivatorActive);
+            MessageBox.messageBox.PressentMessage("All Clear - Proceed to the Elevator",elivatorActive);
 
             elivator.locked = false;
             lockText.SetActive(false);
@@ -64,7 +62,7 @@ public class FinalStage : MonoBehaviour
             isTriggered = false;
             Player = other.gameObject;
             PlayerHealthIncreaser(other.gameObject,500);
-            messageBox.PressentMessage("Power's out. Follow the path to Start the generator.",ac);
+            MessageBox.messageBox.PressentMessage("Power's out. Follow the path to Start the generator.",ac);
             generatorPath.SetActive(true);
         }
     }

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 public class WeaponShootActivator : MonoBehaviour
 {
-    PlayerFiring playerFiring;
-    public Weapon weaponType;
+    [SerializeField] WeaponType weaponType;
+    public WeaponData weaponData;
     [SerializeField] GameObject bulletShell;
     [SerializeField] GameObject bulletShellPos;
     List<GameObject> shellsPool = new List<GameObject>();
@@ -24,11 +24,6 @@ public class WeaponShootActivator : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        playerFiring = GetComponentInParent<PlayerFiring>();
-    }
-
     public void ShellFiring()
     {
         shellsPool[order].SetActive(true);
@@ -40,6 +35,6 @@ public class WeaponShootActivator : MonoBehaviour
 
     public void WeaponShootActi()
     {
-        playerFiring.shootRate = true;
+        weaponType.shootRate = true;
     }
 }

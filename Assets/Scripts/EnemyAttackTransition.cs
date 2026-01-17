@@ -4,10 +4,10 @@ using System.Collections;
 
 public class EnemyAttackTransition : MonoBehaviour
 {
-    string targetNameRef;
+    EnemyTarget targetNameRef;
     GameObject targetPosRef;
 
-    public void ChangingObject(EnemySpawner[] enemySpawners , string targetName , GameObject targetPos,float stopDistance)
+    public void ChangingObject(EnemySpawner[] enemySpawners , EnemyTarget targetName , GameObject targetPos,float stopDistance)
     {
         targetNameRef = targetName;
         targetPosRef = targetPos;
@@ -18,16 +18,16 @@ public class EnemyAttackTransition : MonoBehaviour
             enemySpawner.attackPos = targetPos;
             foreach(Enemy enemy in enemySpawner.enemies)
             {
-                enemy.stopValue = stopDistance;
-                enemy.player = targetPos;
+                enemy.stopValueRef = stopDistance;
+                enemy.playerMountedObject = targetPos;
                 enemy.AliveChanger = isAlive;
             }
         }
 
-        StartCoroutine("ChangingTag",enemySpawners);
+        StartCoroutine("ChangeTag",enemySpawners);
     }
 
-    IEnumerator ChangingTag(EnemySpawner[] enemySpawners)
+    IEnumerator ChangeTag(EnemySpawner[] enemySpawners)
     {
         yield return new WaitForSeconds(1f);
 
@@ -38,11 +38,9 @@ public class EnemyAttackTransition : MonoBehaviour
                 Animator enemyAnimatorRef = enemy.enemyAnimator;
                 if(enemyAnimatorRef.gameObject.activeInHierarchy)
                 {
-                    enemyAnimatorRef.SetBool("attack1",false);
-                    enemyAnimatorRef.SetBool("attack2",false); 
-                    enemyAnimatorRef.SetBool("neckAttack",false);
+                    enemyAnimatorRef.SetFloat("AttackType",0);
                 }
-                enemy.GetComponentInChildren<DamageManager>().aventName = targetNameRef;
+                enemy.GetComponentInChildren<DamageManager>().enemyTarget = targetNameRef;
             }
         }
     }

@@ -47,7 +47,6 @@ public class Car : MonoBehaviour
     [SerializeField] int carHealth = 10000;
     int carHealthRef;
     float zombieStopDistance = 1.2f;
-    string damageTaker = "player";
 
     bool isBrakeing = false;
     bool isStart = true;
@@ -75,7 +74,7 @@ public class Car : MonoBehaviour
 
     GameObject player;
     PlayerHealth playerHealth;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
 
     Transform originalPoint;
 
@@ -139,7 +138,7 @@ public class Car : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.G))
         {
-            if(playerFiring.GamePaused) { return; }
+            if(playerManager.GamePaused) { return; }
 
             isOn = !isOn;
             foreach (GameObject light in Lights)
@@ -296,7 +295,7 @@ public class Car : MonoBehaviour
 
     void VehicalExit()
     {
-        if (Input.GetKey(KeyCode.F) && !playerFiring.GamePaused && !carWeapon.IsPressed)
+        if (Input.GetKey(KeyCode.F) && !playerManager.GamePaused && !carWeapon.IsPressed)
         {
             rb.constraints = RigidbodyConstraints.FreezeAll;
             VehicalStoper();
@@ -354,7 +353,7 @@ public class Car : MonoBehaviour
         playerHealth.ActivateNormalMode();
         if(carHealthRef <= 0) { playerHealth.HealthConditions(playerHealth.playerHealthRef); }
 
-        if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,damageTaker,player,zombieStopDistance); }
+        if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,EnemyTarget.player,player,zombieStopDistance); }
         Cursor.visible = true;
         gameObject.GetComponent<Car>().enabled = false;
     }
@@ -393,7 +392,7 @@ public class Car : MonoBehaviour
     {
         player = playerRef;
         playerHealth = playerRef.GetComponent<PlayerHealth>();
-        playerFiring = playerRef.GetComponent<PlayerFiring>();
+        playerManager = playerRef.GetComponent<PlayerManager>();
     }
 
     public void ContinueState()

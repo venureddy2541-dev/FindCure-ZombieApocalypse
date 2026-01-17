@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class DamageManager : MonoBehaviour
 {
+    //public EnemyTarget initialEnemyTarget;
     [SerializeField] int enemyHitDamage = 25;
-    public string aventName;
+    public EnemyTarget enemyTarget;
     AudioSource audioSource;
     [SerializeField] AudioClip playerHitSound;
     [SerializeField] AudioClip otherHitSound;
@@ -16,7 +17,6 @@ public class DamageManager : MonoBehaviour
     void Awake()
     {
         audioSource = GetComponentInParent<AudioSource>();
-        aventName = "player";
 
         standGunShield = FindFirstObjectByType<StandGunShield>();
         standGun = FindFirstObjectByType<StandGun>();
@@ -25,9 +25,9 @@ public class DamageManager : MonoBehaviour
 
     public void AnimtionEvent()
     {
-        switch(aventName) 
+        switch(enemyTarget) 
         {
-            case "player" :
+            case  EnemyTarget.player :
                 
                 playerHealth = FindFirstObjectByType<PlayerHealth>();
                 if(playerHealth)
@@ -37,7 +37,7 @@ public class DamageManager : MonoBehaviour
                 }
                 break;
 
-            case "gun" :
+            case EnemyTarget.gun :
 
                 if(standGun)
                 {
@@ -46,7 +46,7 @@ public class DamageManager : MonoBehaviour
                 }
                 break;
 
-            case "car" :
+            case EnemyTarget.car :
 
                 if(car)
                 {
@@ -55,7 +55,7 @@ public class DamageManager : MonoBehaviour
                 }
                 break;
 
-            case "gunShield" :
+            case EnemyTarget.gunShield :
 
                 if(standGunShield)
                 {

@@ -5,7 +5,7 @@ public class Crate : MonoBehaviour
     [SerializeField] GameObject explotionEffect;
     [SerializeField] GameObject[] ammos;
     GameObject ammoType;
-    int woodHealth = 5;
+    int woodHealth = 50;
 
     void OnEnable()
     {
@@ -20,7 +20,7 @@ public class Crate : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        woodHealth -= (damage/10);
+        woodHealth -= damage;
         if(woodHealth <= 0)
         {
             ammoType.GetComponent<Rotator>().Activator(0,1);

@@ -7,13 +7,11 @@ public class Waves : MonoBehaviour
     public string key;
     [SerializeField] private int count;
     public int Count { get { return count; }}
-    GameObject gameManager;
     Helper helper;
 
-    void Awake()
+    void Start()
     {
-        gameManager = GameObject.FindWithTag("Manager");
-        if (gameManager.transform.Find(gameObject.name))
+        if (GameManager.gameManager.transform.Find(gameObject.name))
         {
             Destroy(gameObject);
         }
@@ -39,8 +37,8 @@ public class Waves : MonoBehaviour
             }
             GameManager.gameManager.ManageLevel();
             text.text = "CODE : " + key;
-            transform.parent = gameManager.transform;
-            gameManager.GetComponent<GameManager>().levels.Add(gameObject);
+            transform.parent = GameManager.gameManager.transform;
+            GameManager.gameManager.levels.Add(gameObject);
         }
     }
 

@@ -10,7 +10,6 @@ public class Elivator : MonoBehaviour
 
     [SerializeField] Transform floor1Pos;
     [SerializeField] Transform groundPos;
-    MessageBox messageBox;
     [SerializeField] AudioClip lockedAudioClip;
     [SerializeField] AudioClip switchAC;
     [SerializeField] float speed; 
@@ -20,8 +19,6 @@ public class Elivator : MonoBehaviour
 
     void Awake()
     {
-        messageBox = GameObject.FindWithTag("MessageBox").GetComponent<MessageBox>();
-
         if(GameManager.gameManager.LevelRef > 5)
         {
             elivator.locked = false;
@@ -34,9 +31,9 @@ public class Elivator : MonoBehaviour
     {
         if(other.CompareTag("Player"))
         {
-            if(locked) { messageBox.PressentMessage("Locked",lockedAudioClip); }
+            if(locked) { MessageBox.messageBox.PressentMessage("Locked",lockedAudioClip); }
             Cursor.lockState = CursorLockMode.None;
-            other.GetComponent<PlayerFiring>().StopShootingOrThrowing();
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
         }
     }
 
@@ -45,7 +42,7 @@ public class Elivator : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.Locked;
-            other.GetComponent<PlayerFiring>().ActivateShootingOrThrowing();
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 

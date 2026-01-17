@@ -81,4 +81,9 @@ public class EnemyAttack : MonoBehaviour
             transform.localRotation = Quaternion.identity;
         }
     }
+
+    public void IsAttackComplete()
+    {
+        enemy.canAttack = true;
+    }
 }

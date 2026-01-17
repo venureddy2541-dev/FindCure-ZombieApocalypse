@@ -52,7 +52,7 @@ public class EndAnimation : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
             player = other.gameObject;
             collectButton.SetActive(true);
-            other.GetComponent<PlayerFiring>().StopShootingOrThrowing();  
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
         }
     }
 
@@ -62,7 +62,7 @@ public class EndAnimation : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             collectButton.SetActive(false);
-            other.GetComponent<PlayerFiring>().ActivateShootingOrThrowing();
+            other.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 

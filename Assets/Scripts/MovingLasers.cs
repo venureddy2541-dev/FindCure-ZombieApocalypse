@@ -10,16 +10,9 @@ public class MovingLasers : MonoBehaviour
     [SerializeField] Transform startPos;
     [SerializeField] Transform endPos;
     [SerializeField] AudioClip lasersActivated;
-    MessageBox messageBox;
-
     public bool triggered = false;
     public int Key;
     public int tempKey;
-
-    void Awake()
-    {
-        messageBox = GameObject.FindWithTag("MessageBox").GetComponent<MessageBox>();
-    }
     
     void OnTriggerEnter(Collider other)
     {
@@ -27,7 +20,7 @@ public class MovingLasers : MonoBehaviour
         {
             triggered = true;
             pb.Play();
-            messageBox.PressentMessage("Lasers are activated,Fall back and secure the key from the fallen soldiers",lasersActivated);
+            MessageBox.messageBox.PressentMessage("Lasers are activated,Fall back and secure the key from the fallen soldiers",lasersActivated);
             movableLasers.gameObject.SetActive(true);
             StartCoroutine("StartLasers");
         }

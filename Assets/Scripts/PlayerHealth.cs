@@ -9,9 +9,11 @@ using TMPro;
 using UnityEngine.UI;
 using StarterAssets;
 using System.Linq;
+using System;
 
 public class PlayerHealth : MonoBehaviour
 {
+    public static event Action<PlayerState> PlayerDead;
     [SerializeField] GameObject playerUIComponenets;
     [SerializeField] PlayerInput playerInputSystem;
     [SerializeField] EnemyAttackTransition enemyAttackTransition;
@@ -32,7 +34,7 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] CinemachineCamera deathCam;
 
     [SerializeField] Car car;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
     WeaponHandle weaponHandle;
     StarterAssetsInputs starterAssetsInputs;
 
@@ -47,8 +49,6 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] float speed = 1.2f;
 
     [SerializeField] GameObject playerBody;
-    float weaponSplitUpSpeed;
-    float weaponSplitFrontSpeed;
     float coolDownTime = 25f;
     float invisibleTime = 5f;
     int healthKitCount;
@@ -61,7 +61,6 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] Image invisibilImg;
     bool isInvicible = true;
     public bool invisibleState = false;
-    MessageBox messageBox;
 
     RectTransform crossHairRectTrans;
     Vector2 crossHairOrgPos;
@@ -76,14 +75,23 @@ public class PlayerHealth : MonoBehaviour
         crossHairRectTrans = crossHair.GetComponent<RectTransform>();
         crossHairOrgPos = crossHairRectTrans.anchoredPosition;
 
-        playerFiring = GetComponent<PlayerFiring>();
+        playerManager = GetComponent<PlayerManager>();
         playerDeathText = GameObject.FindWithTag("DeadMenu");
-        messageBox = GameObject.FindWithTag("MessageBox").GetComponent<MessageBox>();
         isAlive = GetComponent<IsAlive>();
 
         playerHealthRef = playerHealth;
         healthText.text = playerHealthRef.ToString();
         slider.value = playerHealthRef;
+    }
+
+    void OnDisable()
+    {
+        PlayerDead?.Invoke(PlayerState.InActive);
+    }
+
+    void OnDestroy()
+    {
+        PlayerDead?.Invoke(PlayerState.Dead);
     }
     
     void Start()
@@ -98,49 +106,18 @@ public class PlayerHealth : MonoBehaviour
     
     void OnInvisibile(InputValue value)
     {
-        if (value.isPressed && isInvicible && !playerFiring.GamePaused)
+        if (value.isPressed && !playerManager.idle && isInvicible && !playerManager.GamePaused)
         {
             isAlive.alive = false;
             invisibleState = true;
             weaponHandle.ToTransparent();
             isInvicible = false;
-            playerFiring.idle = false;
+            playerManager.IdleState(true);
             int playerLayer = LayerMask.NameToLayer("Player");
             int enemyLayer = LayerMask.NameToLayer("PlayerHit");
             Physics.IgnoreLayerCollision(playerLayer,enemyLayer,true);
-            PlayerInvicibleState(null);
-            StartCoroutine(InvisibilityManager(false));                         
+            StartCoroutine(InvisibilityManager(false));                     
         }
-    }
-
-    public void PlayerInvicibleState(GameObject currentObject)
-    {
-        Enemy[] enemies = FindObjectsOfType<Enemy>();
-        foreach(Enemy enemy in enemies)
-        {   
-            if(enemy.isProvoked && !enemy.dead)
-            {
-                if(enemy.navMesh.speed != 0f || enemy.acidAttack)
-                {
-                    EnemyIdleState(enemy);
-                }
-                else
-                {
-                    enemy.enemyAnimator.SetBool("PlayerDead",false);
-                    enemy.navMesh.speed = enemy.Speed;
-                }
-            }
-            enemy.player = currentObject;
-        }
-    }
-
-    void EnemyIdleState(Enemy enemy)
-    {
-        enemy.navMesh.speed = 0;
-        enemy.enemyAnimator.SetBool("attack1",false);
-        enemy.enemyAnimator.SetBool("attack2",false);
-        enemy.enemyAnimator.SetBool("neckAttack",false);
-        enemy.enemyAnimator.SetBool("PlayerDead",true);
     }
 
     IEnumerator InvisibilityManager(bool coolDownTimeLeft)
@@ -161,14 +138,10 @@ public class PlayerHealth : MonoBehaviour
             invisibleState = false;
             loopControler = false;
             weaponHandle.ToOpaque();
-            if(playerFiring.cantShoot == true)
-            {
-                playerFiring.idle = true;
-            }
+            playerManager.IdleState(false);
             int playerLayer = LayerMask.NameToLayer("Player");
             int enemyLayer = LayerMask.NameToLayer("PlayerHit");
             Physics.IgnoreLayerCollision(playerLayer,enemyLayer,false);
-            PlayerInvicibleState(this.gameObject);
             tempPlayerTimer = coolDownTime;
         }
 
@@ -190,7 +163,7 @@ public class PlayerHealth : MonoBehaviour
     
     IEnumerator GotHit()
     {
-        float gotHitVal = Random.Range(0f,0.4f);
+        float gotHitVal = UnityEngine.Random.Range(0f,0.4f);
         vignette.intensity.value = gotHitVal;
 
         yield return new WaitForSeconds(0.1f);
@@ -206,68 +179,79 @@ public class PlayerHealth : MonoBehaviour
 
         if (playerHealthRef <= minHealth && playerHealthRef > 0 && lowHealth)
         {
-            playerFiring.ZoomOut();
-            LowHealth();
+            HealthState(false);
         }
 
         if (playerHealthRef > minHealth && !lowHealth)
         {
-            GreaterThenMinHealth();
+            HealthState(true);
         }
         
         if (playerHealthRef <= 0)
         {
-            isAlive.alive = false;
-            messageBox.CompleteClear();
-            playerFiring.ZoomOut();
-            playerUIComponents.SetActive(false);
-            crossHair.SetActive(false);
-            vignette.active = false;
-            requiredAudios.Stop();
-            requiredAudios.PlayOneShot(playerDeadAudio);
-            GameManager.gameManager.DeadMenu();
-            playerFiring.canZoom = false;
-            deathCam.transform.parent = null;
-            deathCam.Priority = 20;
-            playerBody.transform.parent = null;
-            playerBody.SetActive(true);
-            foreach (GameObject gb in weaponHandle.Weapons)
-            {
-                gb.transform.parent = null;
-                Rigidbody rb = gb.GetComponent<Rigidbody>();
-                rb.isKinematic = false;
-                Animator animator = gb.GetComponent<Animator>();
-                if(animator) { animator.enabled = false; }
-                gb.SetActive(true);
-                float weaponSplitUpSpeed = Random.Range(0f, 5f);
-                float weaponSplitFrontSpeed = Random.Range(0f, 3f);
-                float weaponSplitLRSpeed = Random.Range(0, 2f);
-                rb.AddExplosionForce(explosionForce,transform.position,explosionRadius,Random.Range(0f,2f),ForceMode.Impulse);
-            }
-            
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-            gameObject.SetActive(false);
+            Dead();
         }
     }
 
-    public void LowHealth()
+    void Dead()
     {
-        lowHealth = false;
-        playerFiring.canZoom = false;
-        vignette.active = true;
-        requiredAudios.clip = playerBreathAudio;
-        requiredAudios.Play();
-        StartCoroutine("Blinking");
+        isAlive.alive = false;
+
+        playerManager.StopAll();
+
+        MessageBox.messageBox.CompleteClear();
+        playerUIComponents.SetActive(false);
+        crossHair.SetActive(false);
+        vignette.active = false;
+        GameManager.gameManager.DeadMenu();
+        deathCam.transform.parent = null;
+        deathCam.Priority = 20;
+        playerBody.transform.parent = null;
+        playerBody.SetActive(true);
+        
+        ThrowWeapons();
+        
+        requiredAudios.Stop();
+        requiredAudios.PlayOneShot(playerDeadAudio);
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        gameObject.SetActive(false);
     }
 
-    public void GreaterThenMinHealth()
+    void ThrowWeapons()
     {
-        requiredAudios.clip = null;
-        StopCoroutine("Blinking");
-        playerFiring.canZoom = true;
-        lowHealth = true;
-        vignette.active = false;
+        foreach (GameObject gb in weaponHandle.Weapons)
+        {
+            gb.transform.parent = null;
+            Rigidbody rb = gb.GetComponent<Rigidbody>();
+            rb.isKinematic = false;
+            Animator animator = gb.GetComponent<Animator>();
+            if(animator) { animator.enabled = false; }
+            gb.SetActive(true);
+            rb.AddExplosionForce(explosionForce,transform.position,explosionRadius,UnityEngine.Random.Range(0f,2f),ForceMode.Impulse);
+        }
+    }
+
+    public void HealthState(bool currentState)
+    {
+        lowHealth = currentState;
+        vignette.active = !currentState;
+
+        if(!currentState)
+        {
+            requiredAudios.clip = playerBreathAudio;
+            requiredAudios.Play();
+            StartCoroutine("Blinking");
+            playerManager.canZoom = false;
+            playerManager.SetWeaponScrolling(!currentState);
+            playerManager.SetScope(currentState); 
+        }
+        else
+        {
+            requiredAudios.clip = null;
+            StopCoroutine("Blinking");
+            playerManager.canZoom = true;
+        }
     }
 
     IEnumerator Blinking()
@@ -283,7 +267,7 @@ public class PlayerHealth : MonoBehaviour
 
     void OnHealth(InputValue value)
     {
-        if(value.isPressed && healthKitCount > 0 && playerHealthRef < playerHealth && !playerFiring.GamePaused)
+        if(value.isPressed && healthKitCount > 0 && playerHealthRef < playerHealth && !playerManager.GamePaused)
         {
             requiredAudios.PlayOneShot(healAudio);
             healthKitCount--;
@@ -301,10 +285,11 @@ public class PlayerHealth : MonoBehaviour
 
     public void UpdateHealthText(int healthKitCountRef)
     {
-        for(int i = healthKitCountRef;i > 0;i--)
+        /*for(int i = healthKitCountRef;i > 0;i--)
         {
             healthKitCount++;
-        }
+        }*/
+        healthKitCount += healthKitCountRef;
         healthKitText.text = "COUNT : "+ healthKitCount;
     }
 
@@ -323,24 +308,24 @@ public class PlayerHealth : MonoBehaviour
 
     public void ActivateDriveMode()
     {   
-        GreaterThenMinHealth();
+        HealthState(true);
         playerInputSystem.enabled = false;
         playerUIComponents.SetActive(false);
         playerCam.Priority = 0;
-        if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,"car",car.gameObject,zombieStopDistance); }
+        if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,EnemyTarget.car,car.gameObject,zombieStopDistance); }
         gameObject.SetActive(false);
     }
 
     public void ActivateNormalMode()
     {
-        playerFiring.granadeTimeText.text = null;
+        playerManager.granadeTimeText.text = null;
         playerInputSystem.enabled = true;
         playerUIComponenets.SetActive(true);
-        playerFiring.ActivateShootingOrThrowing();
+        playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
         playerCam.Priority = 20;
         if (playerHealth <= minHealth)
         {
-            LowHealth();
+            HealthState(false);
         }
         gameObject.SetActive(true);
         StartCoroutine(InvisibilityManager(true)); 
@@ -350,7 +335,7 @@ public class PlayerHealth : MonoBehaviour
 
     public void ActivateStandGunMode()
     {
-        GreaterThenMinHealth();
+        HealthState(true);
         playerInputSystem.enabled = false;
         playerUIComponents.SetActive(false);
         playerCam.Priority = 0;
@@ -359,6 +344,6 @@ public class PlayerHealth : MonoBehaviour
 
     public void AssignCar(Car car)
     {
-        car = car;
+        this.car = car;
     }
 }

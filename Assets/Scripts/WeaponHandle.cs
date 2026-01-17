@@ -1,8 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
 
 public class WeaponHandle : MonoBehaviour
 {
+    [SerializeField] HitParticles hitParticles;
+    [SerializeField] AudioClips audioClips;
+    [SerializeField] TMP_Text magText;
+    [SerializeField] AudioSource weaponAudioSource;
     [SerializeField] Transform origin;
     [SerializeField] Transform CantShootPos;
     [SerializeField] Transform originalPos;
@@ -12,111 +17,75 @@ public class WeaponHandle : MonoBehaviour
     
     [SerializeField] List<float> weaponsEndPoints;
     public List<GameObject> Weapons;
+    public List<WeaponType> weaponTypes;
     public List<GameObject> DisplayWeapons;
     [SerializeField] List<Material> transparentMaterials;
     [SerializeField] List<Material> originalMaterials;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
     PlayerHealth playerHealth;
     IsAlive isAlive;
+    public List<int> currentAmmoSizes = new List<int>();
 
-    int count;
+    int index = 0;
     bool didHit = false;
+    public bool canScroll = true;
 
     void Awake()
     {
-        playerFiring = GetComponent<PlayerFiring>();
+        playerManager = GetComponent<PlayerManager>();
         playerHealth = GetComponent<PlayerHealth>();
         isAlive = GetComponent<IsAlive>();
 
-        Weapons[count].SetActive(true);
-        DisplayWeapons[count].SetActive(true);
-        foreach(GameObject weapon in Weapons)
-        {
-            WeaponShootActivator weaponShootActivator = weapon.GetComponent<WeaponShootActivator>();
-            playerFiring.storageSize.Add(weaponShootActivator.weaponType.maxAmmo);
-            playerFiring.magSize.Add(weaponShootActivator.weaponType.magSize);
-        }
+        Weapons[index].SetActive(true);
+        DisplayWeapons[index].SetActive(true);
     }
 
     void OnEnable()
     {
-        Weapons[count].SetActive(true);
-        DisplayWeapons[count].SetActive(true);
+        Weapons[index].SetActive(true);
+        DisplayWeapons[index].SetActive(true);
     }
 
     void Update()
     {   
         if(!isAlive.alive) return;
 
-        if(!playerFiring.granadeSelected)
+        if(canScroll && !playerManager.fired && weaponTypes[index].shootRate)
         {
             float scroll = Input.GetAxis("Mouse ScrollWheel");
             if(scroll > 0.1)
             {
-                count++;
-                if(count < Weapons.Count)
-                {
-                    WeaponSelector(count);
-                }
-                else
-                {
-                    count--;
-                }
+                index++;
+                if(index < Weapons.Count){ CurrentWeaponActivator(); }
+                else{ index--; }
             }
 
             if(scroll < -0.1)
             {
-                count--;
-                if(count >= 0)
-                {
-                    WeaponSelector(count);
-                }
-                else
-                {
-                    count++;
-                }
-
+                index--;
+                if(index >= 0){ CurrentWeaponActivator(); }
+                else{ index++; }
             }
         }
 
         WeaponCollisionDitecter();
     }
 
-    void WeaponSelector(int weaponNo)
-    {
-        if(!playerFiring.reloaded && !playerFiring.willZoom && !playerFiring.fired && !playerFiring.GamePaused)
-        {
-            CurrentWeaponActivator(weaponNo);
-        }
-    }
-
-    void CurrentWeaponActivator(int weaponNo)
+    void CurrentWeaponActivator()
     {
         for(int i = 0;i<Weapons.Count;i++)
         {
-            if(weaponNo == i)
+            if(index == i)
             {
-                Weapons[weaponNo].SetActive(true);
-                DisplayWeapons[weaponNo].SetActive(true);
-                playerFiring.WeaponAssigner(Weapons[weaponNo].GetComponent<WeaponShootActivator>().weaponType,weaponNo);
+                Weapons[index].SetActive(true);
+                DisplayWeapons[index].SetActive(true);
+                playerManager.WeaponAssigner(weaponTypes[index]);
             }
             else
             {
                 DisplayWeapons[i].SetActive(false);
                 Weapons[i].SetActive(false);
             }
-        }
-    }
-
-    public void Reset()
-    {
-        count = 0;
-        CurrentWeaponActivator(count);
-        foreach(GameObject gb in Weapons)
-        {
-            gb.transform.parent = weapons;
-            gb.transform.position = originalPos.position;
-            gb.transform.rotation = originalPos.rotation;
         }
     }
 
@@ -140,34 +109,75 @@ public class WeaponHandle : MonoBehaviour
     {
         RaycastHit hit;
 
-        if (Physics.Raycast(origin.position,origin.forward,out hit,weaponsEndPoints[count],layers,QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(origin.position,origin.forward,out hit,weaponsEndPoints[index],layers,QueryTriggerInteraction.Ignore))
         { 
             didHit = true;
-            playerFiring.idle = false;
-            weapons.transform.position = CantShootPos.position;
-            weapons.transform.rotation = Quaternion.Slerp(weapons.transform.rotation,CantShootPos.rotation,Time.deltaTime*Speed);
+            playerManager.ToggleShootingOrThrowing(FireStateEnum.CantFire);
+            weapons.position = CantShootPos.position;
+            weapons.rotation = Quaternion.Slerp(weapons.rotation,CantShootPos.rotation,Time.deltaTime*Speed);
         }
         else
         {
-            if(didHit && playerFiring.cantShoot == true)
+            if(didHit)
             {
-                playerFiring.idle = true;
+                playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
             }
             didHit = false;
-            weapons.transform.position = originalPos.position;
-            weapons.transform.rotation = Quaternion.Slerp(weapons.transform.rotation,originalPos.rotation,Time.deltaTime*Speed);
+            weapons.position = originalPos.position;
+            weapons.rotation = Quaternion.Slerp(weapons.rotation,originalPos.rotation,Time.deltaTime*Speed);
         }
     }
 
-    public void NewWeaponAssignier(GameObject newWeapon,Material mainMat,Material transperantMat,float endPoint)
+    public void NewWeaponAssignier(GameObject newWeaponObject,Material mainMat,Material transperantMat,float endPoint)
     {
+        GameObject newWeapon = Instantiate(newWeaponObject,new Vector3(weapons.position.x,weapons.position.y + 0.15f,weapons.position.z),weapons.rotation,weapons);
         Weapons.Add(newWeapon);
-        Weapon weapon = newWeapon.GetComponent<WeaponShootActivator>().weaponType;
-        playerFiring.magSize.Add(weapon.magSize);
-        playerFiring.storageSize.Add(weapon.maxAmmo);
+        WeaponType newWeaponType = newWeapon.GetComponent<WeaponType>();
+        newWeaponType.particles = hitParticles;
+        newWeaponType.audioClips = audioClips;
+        newWeaponType.magText = magText;
+        newWeaponType.gunAudioSource = weaponAudioSource;
+        weaponTypes.Add(newWeaponType);
         originalMaterials.Add(mainMat);
         transparentMaterials.Add(transperantMat);
         weaponsEndPoints.Add(endPoint);
-        playerFiring.NewWeapon(newWeapon.GetComponent<Animator>(),newWeapon.GetComponentInChildren<ParticleSystem>());
+        newWeapon.SetActive(false);
+    }
+
+    public bool AssignAmmo(int ammoSize,int maxAmmo,int index)
+    {
+        return weaponTypes[index].BulletAdder(ammoSize,maxAmmo);        
+    }
+
+    public void UpdateInitialAmmo()
+    {
+        currentAmmoSizes.Clear();
+        foreach(WeaponType weaponType in weaponTypes)
+        {
+            currentAmmoSizes.Add(weaponType.weaponData.maxAmmo);
+        }
+
+        UpdateAmmoSizes(currentAmmoSizes);
+    }
+
+    public List<int> CurrentAmmoSizes()
+    {
+        currentAmmoSizes.Clear();
+        foreach(WeaponType weaponType in weaponTypes)
+        {
+            currentAmmoSizes.Add(weaponType.storageSize);
+        }
+
+        return currentAmmoSizes;
+    }
+
+    public void UpdateAmmoSizes(List<int> previousAmmo)
+    {
+        for(int i=0;i<previousAmmo.Count;i++)
+        {
+            weaponTypes[i].storageSize = previousAmmo[i];
+        }
+
+        weaponTypes[index].UpdateWeaponData();
     }
 }

@@ -6,7 +6,7 @@ public class CarActivator : MonoBehaviour
     [SerializeField] AudioClip switchAC;
     [SerializeField] GameObject carOptions;
     GameObject player;
-    PlayerFiring playerFiring;
+    PlayerManager playerManager;
     PlayerHealth playerHealth;
     [SerializeField] Car car;
 
@@ -19,8 +19,8 @@ public class CarActivator : MonoBehaviour
             {
                 player = other.gameObject;
                 Cursor.lockState = CursorLockMode.None;
-                playerFiring = other.GetComponent<PlayerFiring>();
-                playerFiring.StopShootingOrThrowing();
+                playerManager = other.GetComponent<PlayerManager>();
+                playerManager.ToggleShootingOrThrowing(FireStateEnum.CantFire);
                 carOptions.SetActive(true);
             }
         }
@@ -37,14 +37,14 @@ public class CarActivator : MonoBehaviour
     public void SetToPlayer()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        playerFiring.ActivateShootingOrThrowing();
+        playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
         carOptions.SetActive(false);
     }
 
     public void DriveButton()
     {
         carAS.PlayOneShot(switchAC);
-        if (playerFiring.GamePaused || !playerHealth.isAlive.alive || playerHealth.loopControler) { return; }
+        if (playerManager.GamePaused || !playerHealth.isAlive.alive || playerHealth.loopControler) { return; }
 
         carOptions.SetActive(false);
         Cursor.visible = false;
