@@ -156,7 +156,7 @@ public class Enemy : MonoBehaviour
 
     void RandomWalk()
     {
-        if(!dead && !reBirth && !isProvoked)
+        if(!dead && !isProvoked)
         {
             if(CanMove)
             {

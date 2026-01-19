@@ -21,8 +21,8 @@ public class GiantZombie : Enemy
         {
             enemyAnimator.SetBool("running", false);
             navMesh.speed = 0f;
-            transform.LookAt(player.transform);
-            bloodSplit.transform.LookAt(player.transform);
+            transform.LookAt(playerMountedObject.transform);
+            bloodSplit.transform.LookAt(playerMountedObject.transform);
             bloodSplit.AcidAttack(exactDistance);
         }
         else

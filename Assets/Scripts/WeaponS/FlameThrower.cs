@@ -11,7 +11,7 @@ public class FlameThrower : WeaponType
     public override void Fire(bool fired)
     {
         this.fired = fired;
-        if (!reloaded)
+        if (!reloaded && fired)
         {
             StartCoroutine("Firing");
         }
@@ -23,6 +23,13 @@ public class FlameThrower : WeaponType
         {
             OnFire();
             yield return new WaitForSeconds(weaponData.fireRate);
+        }
+
+        if(!fired)
+        {
+            var emission = mazilFlash.emission;
+            emission.enabled = fired;
+            gunAudioSource.Stop();
         }
     }
 
@@ -37,25 +44,26 @@ public class FlameThrower : WeaponType
             {
                 gunAudioSource.clip = weaponData.weaponSound;
                 gunAudioSource.Play();
-                var emission = mazilFlash.emission;
-                emission.enabled = true;
             }
+
+            var emission = mazilFlash.emission;
+            emission.enabled = fired;
 
             if (magSize == 0)
             {
-                gunAudioSource.Stop();
                 fired = false;
-                var emission = mazilFlash.emission;
-                emission.enabled = fired;
-                if(storageSize > 0) { base.ToggleWeaponReload(true); }
+                gunAudioSource.Stop();
+                AutoReload();
             }
         }
-        else if (storageSize == 0)
+        else
         {
-            if (!gunAudioSource.isPlaying)
-            {
-                gunAudioSource.PlayOneShot(audioClips.emptyGunSound);
-            }
+            fired = false;
+            gunAudioSource.PlayOneShot(audioClips.emptyGunSound);
+        }
+
+        if (magSize == 0 && storageSize == 0)
+        {
             MessageBox.messageBox.PressentMessage("OUT OF AMMO", null);
         }
     }

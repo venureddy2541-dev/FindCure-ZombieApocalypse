@@ -19,8 +19,8 @@ public class EnemyAttackTransition : MonoBehaviour
             foreach(Enemy enemy in enemySpawner.enemies)
             {
                 enemy.stopValueRef = stopDistance;
-                enemy.playerMountedObject = targetPos;
                 enemy.AliveChanger = isAlive;
+                enemy.playerMountedObject = targetPos;
             }
         }
 
