@@ -19,8 +19,6 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] Slider slider;
     AudioSource blastSounds;
 
-    [SerializeField] GameObject blastParticles;
-
     [SerializeField] GameObject[] enemyType;
     Vector3[] spawnPos = { new Vector3(-6f, 0, 0), new Vector3(6f, 0, 0), new Vector3(0, 0, -6f), new Vector3(0, 0, 6f) };
     public List<Enemy> enemies = new List<Enemy>();
@@ -175,7 +173,11 @@ public class EnemySpawner : MonoBehaviour
             CancelInvoke("EnemySpawn");
             slider.gameObject.SetActive(false);
             blastSounds.Play();
-            Instantiate(blastParticles, transform.position, Quaternion.identity);
+
+            ParticleSystem currentEffect = RequiredParticles.instance.GetspawnerBlastParticle();
+            currentEffect.transform.position = transform.position;
+            currentEffect.transform.rotation = Quaternion.identity;
+            currentEffect.Play();
 
             spawnerCount++;
             if(spawnerCount < maxspawnerCount)
@@ -200,7 +202,7 @@ public class EnemySpawner : MonoBehaviour
                 }
                 waves.CountAdder(remainingZombiesCount);
                 waves.Counting();
-                Destroy(gameObject);
+                gameObject.SetActive(false);
             }
         }
     }

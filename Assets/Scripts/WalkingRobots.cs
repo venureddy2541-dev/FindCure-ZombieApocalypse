@@ -8,7 +8,6 @@ public class WalkingRobots : MonoBehaviour
     [SerializeField] GameObject obstacleCheckar;
     public GameObject player;
     public AudioSource blastAudioSource;
-    [SerializeField] ParticleSystem blastParticleSystem;
     [SerializeField] GameObject blastParticles;
     [SerializeField] ParticleSystem gun;
     
@@ -80,8 +79,12 @@ public class WalkingRobots : MonoBehaviour
         {
             GameManager.gameManager.UpdateCash(points);
             blastAudioSource.Play();
-            Instantiate(blastParticleSystem,transform.position,Quaternion.identity);
-            Instantiate(blastParticles,transform.position,transform.rotation);
+            
+            ParticleSystem currentEffect = RequiredParticles.instance.GetspiderRobotBlastParticle();
+            currentEffect.transform.position = transform.position;
+            currentEffect.transform.rotation = Quaternion.identity;
+            currentEffect.Play();
+
             gameObject.SetActive(false);
             transform.position = startPosition;
             transform.rotation = startRotation;

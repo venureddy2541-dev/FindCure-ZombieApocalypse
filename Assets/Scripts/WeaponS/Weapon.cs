@@ -6,9 +6,7 @@ using System.Collections.Generic;
 
 public class WeaponType : MonoBehaviour
 {
-    public HitParticles particles;
-    public AudioClips audioClips;
-
+    [SerializeField] WeaponAudioClipsSB weaponAudioClipsSB;
     public Animator animator;
     public ParticleSystem mazilFlash; 
     public LayerMask playerHitLayers;
@@ -129,7 +127,7 @@ public class WeaponType : MonoBehaviour
         }
         else
         {
-            gunAudioSource.PlayOneShot(audioClips.emptyGunSound);
+            gunAudioSource.PlayOneShot(weaponAudioClipsSB.emptyGunSound);
         }
 
         if(magSize == 0 && storageSize == 0)
@@ -220,42 +218,6 @@ public class WeaponType : MonoBehaviour
     void ShootRay()
     {
         InitiateShoot(Camera.main.transform.position,Camera.main.transform.forward);
-
-        /*else if (hit.hit.collider && granadeSelected)
-        {
-            direction = hit.point - transform.position;
-            if ((direction.x > 30f || direction.x < -30f) || (direction.z > 30f || direction.z < -30f))
-            {
-                speed = 100f;
-            }
-            else
-            {
-                speed = Vector3.Distance(hit.point, transform.position) * 8f;
-            }
-        }
-
-        if (hit.hit.collider && timeBomb)
-        {
-            float dist = Vector3.Distance(hit.point, transform.position);
-
-            if (dist <= 5f)
-            {
-                for (int i = 0; i < bombPlantAreas.Count; i++)
-                {
-                    if (bombPlantAreas[i].name == hit.hit.collider.name)
-                    {
-                        timeBombCount--;
-                        Instantiate(timeBombObject, hit.point, Quaternion.LookRotation(hit.normal));
-                        timeBomb = false;
-                        bombPlantAreas.Remove(bombPlantAreas[i]);
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.messageBox.PressentMessage("Go close to the object and press X to place the TimeBomb", null);
-            }
-        }*/
     }
 
     protected virtual void InitiateShoot(Vector3 startPos,Vector3 endPos)
@@ -276,9 +238,9 @@ public class WeaponType : MonoBehaviour
         {
             if (hit.collider.CompareTag("Enemy"))
             {
-                HitAudio(audioClips.enemyHitSound);
+                HitAudio(weaponAudioClipsSB.enemyHitSound);
 
-                HitEffect(particles.enemyHitEffects);
+                HitEffect(RequiredParticles.instance.GetEnemyHitEffect());
 
                 damage = weaponData.weaponDamage;
                 hit.collider.GetComponentInParent<Enemy>().TakeDamage(damage,-ray.direction,weaponData.bulletHitForce);
@@ -286,9 +248,9 @@ public class WeaponType : MonoBehaviour
 
             if (hit.collider.CompareTag("EnemySpawner"))
             {
-                HitAudio(audioClips.metalHitSound);
+                HitAudio(weaponAudioClipsSB.metalHitSound);
 
-                HitEffect(particles.metalHitEffects);
+                HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
                 damage = weaponData.weaponDamage;
                 hit.collider.GetComponent<EnemySpawner>().DamageTaker(damage);
@@ -296,9 +258,9 @@ public class WeaponType : MonoBehaviour
 
             if (hit.collider.CompareTag("Wood"))
             {
-                HitAudio(audioClips.woodHitSound);
+                HitAudio(weaponAudioClipsSB.woodHitSound);
 
-                HitEffect(particles.woodHitEffects);
+                HitEffect(RequiredParticles.instance.GetWoodHitEffect());
 
                 Crate crate = hit.collider.gameObject.GetComponent<Crate>();
                 if (crate)
@@ -309,9 +271,9 @@ public class WeaponType : MonoBehaviour
 
             if (hit.collider.CompareTag("Metal") || hit.collider.CompareTag("Vehical"))
             {
-                HitAudio(audioClips.metalHitSound);
+                HitAudio(weaponAudioClipsSB.metalHitSound);
 
-                HitEffect(particles.metalHitEffects);
+                HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
                 OilBarrel barrel = hit.collider.gameObject.GetComponent<OilBarrel>();
                 if (barrel)
@@ -322,28 +284,28 @@ public class WeaponType : MonoBehaviour
 
             if (hit.collider.CompareTag("TileGround"))
             {
-                HitAudio(audioClips.wallHitSound);
+                HitAudio(weaponAudioClipsSB.wallHitSound);
 
-                HitEffect(particles.stoneHitEffects);
+                HitEffect(RequiredParticles.instance.GetStoneHitEffect());
             }
 
             if (hit.collider.CompareTag("Glass"))
             {
-                HitAudio(audioClips.glassHitSound);
+                HitAudio(weaponAudioClipsSB.glassHitSound);
             }
 
             if (hit.collider.CompareTag("SandGround"))
             {
-                HitAudio(audioClips.sandHitSound);
+                HitAudio(weaponAudioClipsSB.sandHitSound);
 
-                HitEffect(particles.sandHitEffects);
+                HitEffect(RequiredParticles.instance.GetSandHitEffect());
             }
 
             if (hit.collider.CompareTag("Robot"))
             {
-                HitAudio(audioClips.metalHitSound);
+                HitAudio(weaponAudioClipsSB.metalHitSound);
 
-                HitEffect(particles.metalHitEffects);
+                HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
                 damage = weaponData.weaponDamage;
                 RoboBomb roboBomb = hit.collider.GetComponentInParent<RoboBomb>();
@@ -353,9 +315,9 @@ public class WeaponType : MonoBehaviour
 
             if (hit.collider.CompareTag("WalkingRobots"))
             {
-                HitAudio(audioClips.metalHitSound);
+                HitAudio(weaponAudioClipsSB.metalHitSound);
 
-                HitEffect(particles.metalHitEffects);
+                HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
                 damage = weaponData.weaponDamage;
                 hit.collider.GetComponentInParent<WalkingRobots>().TakeDamage(damage);
@@ -368,10 +330,8 @@ public class WeaponType : MonoBehaviour
         gunAudioSource.PlayOneShot(ac, volume);
     }
 
-    void HitEffect(Queue<ParticleSystem> currentEffectQueue)
+    void HitEffect(ParticleSystem currentEffect)
     {
-        ParticleSystem currentEffect = currentEffectQueue.Dequeue();
-        currentEffectQueue.Enqueue(currentEffect);
         currentEffect.transform.position = hit.point;
         currentEffect.transform.rotation = Quaternion.LookRotation(hit.normal);
         currentEffect.Play();
@@ -394,7 +354,7 @@ public class WeaponType : MonoBehaviour
     {
         if (storageSize < max)
         {
-            gunAudioSource.PlayOneShot(audioClips.collectSound);
+            gunAudioSource.PlayOneShot(weaponAudioClipsSB.collectSound);
             storageSize += ammoAdder;
             if (storageSize > max)
             {

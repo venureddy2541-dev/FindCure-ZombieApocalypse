@@ -3,35 +3,18 @@ using System.Collections.Generic;
 
 public class EnemyHitParticles : MonoBehaviour
 {
-    [SerializeField] Transform particleHolder;
-    [SerializeField] HitEffects hitEffectsObject;
+    [SerializeField] WeaponAudioClipsSB weaponAudioClipsSB;
     [SerializeField] AudioSource weaponAudioSource;
 
     int standGunbulletDamage = 50;
     ParticleSystem standGunPs;
     public float volume;
     [SerializeField] float hitForce;
-    List<ParticleCollisionEvent> collisionEvents;
-
-    [Header("StandGun Hit Particles")]
-    [SerializeField] Queue<ParticleSystem> enemyHitParticles;
-    [SerializeField] Queue<ParticleSystem> metalHitParticles;  
-    [SerializeField] Queue<ParticleSystem> woodHitParticles;  
-    [SerializeField] Queue<ParticleSystem> electricHitParticles; 
-
-    [Header("Size Of The Particles")]
-    [SerializeField] int size;
+    [SerializeField] List<ParticleCollisionEvent> collisionEvents = new List<ParticleCollisionEvent>();
 
     void Start()
     {
         standGunPs = GetComponent<ParticleSystem>();
-        for(int i=0;i<size;i++)
-        {
-            enemyHitParticles.Enqueue(Instantiate(hitEffectsObject.enemyEffect,transform.position,Quaternion.identity,particleHolder));
-            metalHitParticles.Enqueue(Instantiate(hitEffectsObject.metalEffect,transform.position,Quaternion.identity,particleHolder));
-            woodHitParticles.Enqueue(Instantiate(hitEffectsObject.woodEffect,transform.position,Quaternion.identity,particleHolder));
-            electricHitParticles.Enqueue(Instantiate(hitEffectsObject.electricShieldEffect,transform.position,Quaternion.identity,particleHolder));
-        }
     }
 
     void OnParticleCollision(GameObject gb)
@@ -40,9 +23,9 @@ public class EnemyHitParticles : MonoBehaviour
         {
             int collisionEventsCount = standGunPs.GetCollisionEvents(gb,collisionEvents);
 
-            HitAudio(hitEffectsObject.enemySound);
+            HitAudio(weaponAudioClipsSB.enemyHitSound);
 
-            HitEffect(enemyHitParticles);
+            HitEffect(RequiredParticles.instance.GetEnemyHitEffect());
 
             Enemy enemy = gb.GetComponentInParent<Enemy>();
             if(enemy)
@@ -52,31 +35,29 @@ public class EnemyHitParticles : MonoBehaviour
         }
         else if(gb.CompareTag("Metal"))
         {
-            HitAudio(hitEffectsObject.metalSound);
+            int collisionEventsCount = standGunPs.GetCollisionEvents(gb,collisionEvents);
 
-            HitEffect(metalHitParticles);
-        }
-        else if(gb.CompareTag("Wood"))
-        {
-            HitAudio(hitEffectsObject.woodSound);
+            HitAudio(weaponAudioClipsSB.metalHitSound);
 
-            HitEffect(woodHitParticles);
+            HitEffect(RequiredParticles.instance.GetMetalHitEffect());
         }
         else if(gb.CompareTag("EnemySpawner"))
         {   
             int collisionEventsCount = standGunPs.GetCollisionEvents(gb,collisionEvents);
 
-            HitAudio(hitEffectsObject.metalSound);
+            HitAudio(weaponAudioClipsSB.metalHitSound);
 
-            HitEffect(metalHitParticles);
+            HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
             gb.GetComponent<EnemySpawner>().DamageTaker(standGunbulletDamage*collisionEventsCount);
         }
         else if(gb.CompareTag("ElectricShield"))
         {
-            HitAudio(hitEffectsObject.electricShieldSound);
+            int collisionEventsCount = standGunPs.GetCollisionEvents(gb,collisionEvents);
 
-            HitEffect(electricHitParticles);
+            HitAudio(weaponAudioClipsSB.electricShieldHitSound);
+
+            HitEffect(RequiredParticles.instance.GetElectricShieldHitEffect());
         }
     }
 
@@ -85,10 +66,8 @@ public class EnemyHitParticles : MonoBehaviour
         weaponAudioSource.PlayOneShot(ac, volume);
     }
 
-    void HitEffect(Queue<ParticleSystem> currentEffectQueue)
+    void HitEffect(ParticleSystem currentEffect)
     {
-        ParticleSystem currentEffect = currentEffectQueue.Dequeue();
-        currentEffectQueue.Enqueue(currentEffect);
         currentEffect.transform.position = collisionEvents[0].intersection;
         currentEffect.transform.LookAt(collisionEvents[0].normal);
         currentEffect.Play();

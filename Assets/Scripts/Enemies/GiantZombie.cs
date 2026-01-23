@@ -19,6 +19,7 @@ public class GiantZombie : Enemy
     {
         if(exactDistance <= 10 && exactDistance >= 4)
         {
+            enemyAnimator.SetFloat("WalkIndex",0);
             enemyAnimator.SetBool("running", false);
             navMesh.speed = 0f;
             transform.LookAt(playerMountedObject.transform);
@@ -41,5 +42,10 @@ public class GiantZombie : Enemy
     protected override float CurrentAttackType()
     {
         return Random.Range(1f,2f);
+    }
+
+    protected override void Crawl()
+    {
+        //Cant Crawl
     }
 }

@@ -285,10 +285,6 @@ public class PlayerHealth : MonoBehaviour
 
     public void UpdateHealthText(int healthKitCountRef)
     {
-        /*for(int i = healthKitCountRef;i > 0;i--)
-        {
-            healthKitCount++;
-        }*/
         healthKitCount += healthKitCountRef;
         healthKitText.text = "COUNT : "+ healthKitCount;
     }
@@ -313,6 +309,7 @@ public class PlayerHealth : MonoBehaviour
         playerUIComponents.SetActive(false);
         playerCam.Priority = 0;
         if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,EnemyTarget.car,car.gameObject,zombieStopDistance); }
+        
         gameObject.SetActive(false);
     }
 

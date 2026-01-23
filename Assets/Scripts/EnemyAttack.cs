@@ -20,17 +20,6 @@ public class EnemyAttack : MonoBehaviour
         enemy.ChasePlayer();
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        if(other.gameObject.CompareTag("Vehical") && isAlive  && other.gameObject.GetComponentInParent<Car>().speedRef >= 1.5f)
-        {
-            enemy.TakeDamage(enemy.healthRef,Vector3.zero,hitForce);
-            other.GetComponent<Car>().CarDamage(10);
-            isAlive = false;
-            enemyAudios.PlayOneShot(enemyHitByVehicalSound);
-        }
-    }
-
     public void RegdolActivation()
     {
         enemy.navMesh.speed = 0;

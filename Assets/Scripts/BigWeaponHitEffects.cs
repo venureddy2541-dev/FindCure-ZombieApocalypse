@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "HitEffects", menuName = "Scriptable Object/HitEffects")]
-public class HitEffects : ScriptableObject
+public class BigWeaponHitEffects : ScriptableObject
 {
     public AudioClip electricShieldSound;
     public AudioClip metalSound;

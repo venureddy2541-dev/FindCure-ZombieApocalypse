@@ -3,17 +3,23 @@ using System.Collections;
 
 public class FireParticle : MonoBehaviour
 {
+    [SerializeField] ParticleSystem thisParticleSystem;
     Transform currentHitObject;
     Vector3 hitPos;
 
     void OnEnable()
     {
-        StartCoroutine("ResetParent");
+        StartCoroutine("ResetFollowPos");
     }
 
     void Update()
     {
         if(currentHitObject != null) { transform.position = currentHitObject.position; }
+    }
+
+    public void Play()
+    {
+        thisParticleSystem.Play();
     }
 
     public void SetFollowPos(Transform currentParent)
@@ -26,7 +32,7 @@ public class FireParticle : MonoBehaviour
         transform.position = hitPos;
     }
 
-    IEnumerator ResetParent()
+    IEnumerator ResetFollowPos()
     {
         yield return new WaitForSeconds(1f);
         currentHitObject = null;

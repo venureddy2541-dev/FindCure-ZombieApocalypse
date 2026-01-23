@@ -17,14 +17,6 @@ public class PlayerManager : MonoBehaviour
     bool gamePaused = false;
     public bool GamePaused{ get { return gamePaused; } }
 
-    [Header("TimeBomb")]
-    public GameObject timeBombObject;
-    public bool timeBomb = false;
-    public int timeBombCount;
-    public AudioSource blastAudioSource;
-    public GameObject blastParticle;
-    public TMP_Text timeBombText;
-    public List<GameObject> bombPlantAreas = new List<GameObject>();
 
     [Header("Granade Values")]
     public GameObject granade;
@@ -36,7 +28,6 @@ public class PlayerManager : MonoBehaviour
     public bool granadeState = false;
     bool previousGranadeState = false;
     Vector3 direction;
-    bool toguleWG = false;
     public float speed = 100f;
 
     [Header("Cinemachine Components")]
@@ -47,7 +38,6 @@ public class PlayerManager : MonoBehaviour
     public GameObject flashLight;
     public GameObject crossHair;
     public GameObject weaponTexts;
-
     float time;
     int granadeCount;
     public bool fired;
@@ -62,22 +52,33 @@ public class PlayerManager : MonoBehaviour
     //Tougles between weapons and granade
     public bool onZoom = false;
     public bool canZoom = true;
-    TimeBomb timeBombRef;
+
+    public SpecialOperation specialOperation;
 
     void OnEnable()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        if(isOn) { flashLight.SetActive(true); }
     }
 
     void Start()
     {
         firstPersonController = GetComponent<FirstPersonController>();
-        /*timeBombRef = timeBombObject.GetComponent<TimeBomb>();
-        timeBombRef.blastAudioSource = blastAudioSource;
-        timeBombRef.blastParticle = blastParticle;
-        timeBombRef.timerText = timeBombText;*/
 
         UpdateGranadeText(granadeCount);
+    }
+
+    void OnDisable()
+    {
+        if(isOn) { flashLight.SetActive(false); }
+    }
+
+    void OnSpecialOperation(InputValue value)
+    {
+        if(specialOperation != null && !idle)
+        {
+            specialOperation.Perform();
+        }
     }
 
     void OnFlashLight(InputValue value)
@@ -183,20 +184,6 @@ public class PlayerManager : MonoBehaviour
         gb.GetComponent<Granade>().ExecuteGranade(time);
         Rigidbody rb = gb.GetComponent<Rigidbody>();
         rb.AddRelativeForce(Vector3.forward * speed, ForceMode.Impulse);
-    }
-
-    void OnBombPlant(InputValue value)
-    {
-        if(idle) return;
-
-        if (timeBombCount > 0)
-        {
-            timeBomb = value.isPressed;
-            if (timeBomb)
-            {
-                //Shoot();
-            }
-        }
     }
 
     public void WeaponAssigner(WeaponType weaponTypeRef)

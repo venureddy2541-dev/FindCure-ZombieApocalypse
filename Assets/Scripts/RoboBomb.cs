@@ -12,8 +12,6 @@ public class RoboBomb : MonoBehaviour
     Vector3 startPosition;
     Quaternion startRotation;
 
-    [SerializeField] ParticleSystem blastParticleSystem;
-
     [SerializeField] float radius = 8f;
 
     [SerializeField] float rotateSpeed = 10f;
@@ -89,7 +87,12 @@ public class RoboBomb : MonoBehaviour
         }
 
         blastAudioSource.Play();
-        Instantiate(blastParticleSystem,transform.position + new Vector3(0,1f,0),Quaternion.identity);
+
+        ParticleSystem curretParticle = RequiredParticles.instance.GetRoboBombBlastParticle();
+        curretParticle.transform.position = transform.position + new Vector3(0,1f,0);
+        curretParticle.transform.rotation = Quaternion.identity;
+        curretParticle.Play();
+
         gameObject.SetActive(false);
         transform.position = startPosition;
         transform.rotation = startRotation;

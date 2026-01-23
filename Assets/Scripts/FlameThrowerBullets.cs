@@ -5,7 +5,6 @@ public class FlameThrowerBullets : MonoBehaviour
 {
     List<ParticleCollisionEvent> collisionEvents = new List<ParticleCollisionEvent>();
     [SerializeField] WeaponType weaponType;
-    HitParticles particles;
     [SerializeField] ParticleSystem flames;
     ParticleSystem flameThrower;
     [SerializeField] WeaponData weaponData;
@@ -14,7 +13,6 @@ public class FlameThrowerBullets : MonoBehaviour
 
     void Start()
     {
-        particles = weaponType.particles;
         damage = weaponData.weaponDamage;
         flameThrower = GetComponent<ParticleSystem>();
     }
@@ -25,15 +23,7 @@ public class FlameThrowerBullets : MonoBehaviour
         { 
             int count = flameThrower.GetCollisionEvents(gb,collisionEvents);
 
-            ParticleSystem current = particles.flameParticles.Dequeue();
-            particles.flameParticles.Enqueue(current);
-
-            FireParticle currentFireParticle = particles.flameParticlesCs.Dequeue();
-            particles.flameParticlesCs.Enqueue(currentFireParticle);
-
-            current.gameObject.SetActive(true);
-            currentFireParticle.SetFollowPos(gb.transform);
-            current.Play();
+            SetParticlePos(gb.transform);
 
             RoboBomb roboBomb = gb.GetComponentInParent<RoboBomb>(); 
             if(roboBomb) { roboBomb.TakeDamage(count*damage); }
@@ -45,15 +35,7 @@ public class FlameThrowerBullets : MonoBehaviour
         {
             int count = flameThrower.GetCollisionEvents(gb,collisionEvents);
 
-            ParticleSystem current = particles.flameParticles.Dequeue();
-            particles.flameParticles.Enqueue(current);
-
-            FireParticle currentFireParticle = particles.flameParticlesCs.Dequeue();
-            particles.flameParticlesCs.Enqueue(currentFireParticle);
-
-            current.gameObject.SetActive(true);
-            currentFireParticle.SetFollowPos(gb.transform);
-            current.Play();
+            SetParticlePos(gb.transform);
 
             gb.GetComponent<WalkingRobots>().TakeDamage(count*damage);
         }
@@ -62,15 +44,7 @@ public class FlameThrowerBullets : MonoBehaviour
         {
             int count = flameThrower.GetCollisionEvents(gb,collisionEvents);
 
-            ParticleSystem current = particles.flameParticles.Dequeue();
-            particles.flameParticles.Enqueue(current);
-
-            FireParticle currentFireParticle = particles.flameParticlesCs.Dequeue();
-            particles.flameParticlesCs.Enqueue(currentFireParticle);
-
-            current.gameObject.SetActive(true);
-            currentFireParticle.SetFollowPos(gb.transform);
-            current.Play();
+            SetParticlePos(gb.transform);
 
             gb.GetComponentInParent<Enemy>().TakeDamage(count*damage,-collisionEvents[0].normal,hitForce);
         }
@@ -79,15 +53,7 @@ public class FlameThrowerBullets : MonoBehaviour
         {   
             int count = flameThrower.GetCollisionEvents(gb,collisionEvents);
 
-            ParticleSystem current = particles.flameParticles.Dequeue();
-            particles.flameParticles.Enqueue(current);
-
-            FireParticle currentFireParticle = particles.flameParticlesCs.Dequeue();
-            particles.flameParticlesCs.Enqueue(currentFireParticle);
-
-            current.gameObject.SetActive(true);
-            currentFireParticle.SetFollowPos(collisionEvents[0].intersection);
-            current.Play();
+            SetParticlePos(collisionEvents[0].intersection);
 
             gb.GetComponent<EnemySpawner>().DamageTaker(count*damage);
         }
@@ -96,15 +62,7 @@ public class FlameThrowerBullets : MonoBehaviour
         {
             int count = flameThrower.GetCollisionEvents(gb,collisionEvents);
 
-            ParticleSystem current = particles.flameParticles.Dequeue();
-            particles.flameParticles.Enqueue(current);
-
-            FireParticle currentFireParticle = particles.flameParticlesCs.Dequeue();
-            particles.flameParticlesCs.Enqueue(currentFireParticle);
-
-            current.gameObject.SetActive(true);
-            currentFireParticle.SetFollowPos(collisionEvents[0].intersection);
-            current.Play();
+            SetParticlePos(collisionEvents[0].intersection);
 
             Crate crate = gb.GetComponent<Crate>();
             if(crate)
@@ -117,15 +75,7 @@ public class FlameThrowerBullets : MonoBehaviour
         {   
             int count = flameThrower.GetCollisionEvents(gb,collisionEvents);
 
-            ParticleSystem current = particles.flameParticles.Dequeue();
-            particles.flameParticles.Enqueue(current);
-
-            FireParticle currentFireParticle = particles.flameParticlesCs.Dequeue();
-            particles.flameParticlesCs.Enqueue(currentFireParticle);
-
-            current.gameObject.SetActive(true);
-            currentFireParticle.SetFollowPos(collisionEvents[0].intersection);
-            current.Play();
+            SetParticlePos(collisionEvents[0].intersection);
 
             OilBarrel oilBarrel = gb.GetComponent<OilBarrel>();
             if(oilBarrel) { oilBarrel.TakeDamage(count*damage); }
@@ -135,15 +85,23 @@ public class FlameThrowerBullets : MonoBehaviour
         {
             int count = flameThrower.GetCollisionEvents(gb,collisionEvents);
 
-            ParticleSystem current = particles.flameParticles.Dequeue();
-            particles.flameParticles.Enqueue(current);
-
-            FireParticle currentFireParticle = particles.flameParticlesCs.Dequeue();
-            particles.flameParticlesCs.Enqueue(currentFireParticle);
-
-            current.gameObject.SetActive(true);
-            currentFireParticle.SetFollowPos(collisionEvents[0].intersection);
-            current.Play();
+            SetParticlePos(collisionEvents[0].intersection);
         }
+    }
+
+    void SetParticlePos(Transform hitObjectTransform)
+    {
+        FireParticle currentFireParticle = RequiredParticles.instance.GetFlameHitEffectCs();
+
+        currentFireParticle.SetFollowPos(hitObjectTransform);
+        currentFireParticle.Play();
+    }
+
+    void SetParticlePos(Vector3 hitObjectPosition)
+    {
+        FireParticle currentFireParticle = RequiredParticles.instance.GetFlameHitEffectCs();
+
+        currentFireParticle.SetFollowPos(hitObjectPosition);
+        currentFireParticle.Play();
     }
 }

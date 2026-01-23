@@ -8,6 +8,7 @@ using System.Linq;
 
 public class Car : MonoBehaviour
 {
+    [SerializeField] Waves waves;
     [SerializeField] GameObject carUIComponenets;
     [SerializeField] CarActivator carActivator;
     [SerializeField] CinemachineCamera carCam;
@@ -76,7 +77,11 @@ public class Car : MonoBehaviour
     PlayerHealth playerHealth;
     PlayerManager playerManager;
 
+    [SerializeField] float zombiePushForce;
+
     Transform originalPoint;
+
+    CinemachineInputAxisController cinemachineInputAxisController;
 
     void Awake()
     {
@@ -95,6 +100,7 @@ public class Car : MonoBehaviour
         carHealthRef = carHealth;
         carSlider.value = carHealth;
         carSounds = GetComponent<AudioSource>();
+        cinemachineInputAxisController = carCam.gameObject.GetComponent<CinemachineInputAxisController>();
     }
 
     void Update()
@@ -150,8 +156,7 @@ public class Car : MonoBehaviour
 
     void CameraController()
     {
-        bool camActivator = Input.GetMouseButton(1);
-        carCam.gameObject.GetComponent<CinemachineInputAxisController>().enabled = camActivator;
+        cinemachineInputAxisController.enabled = Input.GetMouseButton(1);
     }
 
     void PlayerInput()
@@ -353,18 +358,9 @@ public class Car : MonoBehaviour
         playerHealth.ActivateNormalMode();
         if(carHealthRef <= 0) { playerHealth.HealthConditions(playerHealth.playerHealthRef); }
 
-        if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,EnemyTarget.player,player,zombieStopDistance); }
+        if(enemySpawners.All(x => x != null) && waves.Count > 0) { enemyAttackTransition.ChangingObject(enemySpawners,EnemyTarget.player,player,zombieStopDistance); }
         Cursor.visible = true;
         gameObject.GetComponent<Car>().enabled = false;
-    }
-
-    void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.CompareTag("Metal"))
-        {
-            OilBarrel oilBarrel = other.gameObject.GetComponent<OilBarrel>();
-            if (oilBarrel) oilBarrel.TakeDamage(100);
-        }
     }
 
     void OnPause(InputValue value)
@@ -403,5 +399,19 @@ public class Car : MonoBehaviour
     public void Deactivate()
     {
         carOptions.SetActive(false);
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        if(other.gameObject.CompareTag("EnemyMain") && rb.linearVelocity.magnitude >= 0.25f)
+        {
+            other.gameObject.GetComponent<Enemy>().HitByVehical(10000,transform.position - other.transform.position,Mathf.Clamp(rb.linearVelocity.magnitude,1f,10f));
+        }
+
+        if (other.gameObject.CompareTag("Metal"))
+        {
+            OilBarrel oilBarrel = other.gameObject.GetComponent<OilBarrel>();
+            if (oilBarrel) oilBarrel.TakeDamage(100);
+        }
     }
 }

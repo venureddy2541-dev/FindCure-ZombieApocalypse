@@ -4,8 +4,6 @@ using TMPro;
 
 public class WeaponHandle : MonoBehaviour
 {
-    [SerializeField] HitParticles hitParticles;
-    [SerializeField] AudioClips audioClips;
     [SerializeField] TMP_Text magText;
     [SerializeField] AudioSource weaponAudioSource;
     [SerializeField] Transform origin;
@@ -133,8 +131,6 @@ public class WeaponHandle : MonoBehaviour
         GameObject newWeapon = Instantiate(newWeaponObject,new Vector3(weapons.position.x,weapons.position.y + 0.15f,weapons.position.z),weapons.rotation,weapons);
         Weapons.Add(newWeapon);
         WeaponType newWeaponType = newWeapon.GetComponent<WeaponType>();
-        newWeaponType.particles = hitParticles;
-        newWeaponType.audioClips = audioClips;
         newWeaponType.magText = magText;
         newWeaponType.gunAudioSource = weaponAudioSource;
         weaponTypes.Add(newWeaponType);

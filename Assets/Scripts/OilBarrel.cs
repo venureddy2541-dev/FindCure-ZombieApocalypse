@@ -8,13 +8,15 @@ public class OilBarrel : MonoBehaviour
     [SerializeField] float radius;
     AudioSource blastSounds;
     [SerializeField] AudioClip blastSound;
-    [SerializeField] GameObject barrel;
-    [SerializeField] GameObject blastParticles;
-    [SerializeField] GameObject flameParticles;
-    [SerializeField] GameObject fireParticles;
-    [SerializeField] LayerMask layers;
     [SerializeField] LayerMask objectsLayers;
     [SerializeField] float hitForce;
+
+    public Collider thisCollider;
+
+    void Awake()
+    {
+        thisCollider = GetComponent<Collider>(); 
+    }
 
     void OnEnable()
     {
@@ -65,21 +67,18 @@ public class OilBarrel : MonoBehaviour
                     }
                 }
             }
+
             blastSounds.PlayOneShot(blastSound);
-            Physics.Raycast(transform.position,Vector3.down,out RaycastHit hit,Mathf.Infinity,layers);
-            if(hit.collider.CompareTag("SandGround"))
-            {
-                Instantiate(flameParticles,hit.point,Quaternion.identity);
-            }
-            Instantiate(blastParticles,transform.position,transform.rotation);
-            GameObject newbarrel = Instantiate(barrel,transform.position,transform.rotation);
-            foreach(Transform child in newbarrel.transform)
-            {
-                Instantiate(fireParticles,child.transform);
-            }
-            newbarrel.transform.localScale = transform.localScale;
-            newbarrel.GetComponent<ExplodeBarrel>().Explode();
-            gameObject.SetActive(false);
+
+            thisCollider.enabled = false;
+
+            ExplodeBarrel eb = RequiredParticles.instance.GetBarralEffect();
+            eb.transform.localScale = transform.localScale;
+            eb.transform.position = transform.position;
+            eb.transform.rotation = transform.rotation;
+            eb.Explode();
+
+            Destroy(gameObject);
         }
     }
 

@@ -29,17 +29,13 @@ public class EnemyAttackTransition : MonoBehaviour
 
     IEnumerator ChangeTag(EnemySpawner[] enemySpawners)
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         foreach(EnemySpawner enemySpawner in enemySpawners)
         {
             foreach(Enemy enemy in enemySpawner.enemies)
             {
-                Animator enemyAnimatorRef = enemy.enemyAnimator;
-                if(enemyAnimatorRef.gameObject.activeInHierarchy)
-                {
-                    enemyAnimatorRef.SetFloat("AttackType",0);
-                }
+                enemy.MountedObject();
                 enemy.GetComponentInChildren<DamageManager>().enemyTarget = targetNameRef;
             }
         }

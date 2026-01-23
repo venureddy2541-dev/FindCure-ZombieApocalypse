@@ -15,11 +15,6 @@ public class TimeBomb : MonoBehaviour
 
     Vector3 startScale = new Vector3(0f,0.05f,0f);
     Vector3 endScale = new Vector3(40f,0.05f,40f);
-
-    void Awake()
-    {
-        blastAudioSource = GameObject.FindWithTag("BlastAudio").GetComponent<AudioSource>();
-    }
     
     void Start()
     {
@@ -78,6 +73,6 @@ public class TimeBomb : MonoBehaviour
         }
         Instantiate(blastParticle,transform.position,Quaternion.identity);
         blastAudioSource.Play();
-        Destroy(gameObject);
+        Destroy(gameObject,1f);
     }
 }

@@ -22,12 +22,7 @@ public class Lift : MonoBehaviour
         {
             triggered = false;
             GameManager.gameManager.GameStart();
-            liftTimeline.Play();
+            transform.parent.parent = GameManager.gameManager.transform;
         }
-    }
-
-    void ParentAssignier()
-    {
-        transform.parent.parent = GameManager.gameManager.transform;
     }
 }

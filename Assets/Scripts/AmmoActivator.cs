@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Crate : MonoBehaviour
 {
-    [SerializeField] GameObject explotionEffect;
     [SerializeField] GameObject[] ammos;
     GameObject ammoType;
     int woodHealth = 50;
@@ -16,6 +15,7 @@ public class Crate : MonoBehaviour
     {
         int ammoIndex = Random.Range(0,ammos.Length);
         ammoType = Instantiate(ammos[ammoIndex],transform.position,Quaternion.identity,transform.parent);
+        ammoType.SetActive(false);
     }
 
     public void TakeDamage(int damage)
@@ -23,12 +23,16 @@ public class Crate : MonoBehaviour
         woodHealth -= damage;
         if(woodHealth <= 0)
         {
+            ammoType.SetActive(true);
             ammoType.GetComponent<Rotator>().Activator(0,1);
-            woodHealth = 5;
-            GameObject woodBox = Instantiate(explotionEffect,transform.position,transform.rotation);
-            woodBox.transform.localScale = gameObject.transform.localScale;
-            woodBox.GetComponent<ExplodeBarrel>().Explode();
-            gameObject.SetActive(false);
+
+            ExplodeCreate ec = RequiredParticles.instance.GetCreateEffect();
+            ec.transform.localScale = gameObject.transform.localScale;
+            ec.transform.position = transform.position;
+            ec.transform.rotation = transform.rotation;
+            ec.Explode();
+
+            Destroy(gameObject);
         }
     }
 }

@@ -59,7 +59,7 @@ public class FlameThrower : WeaponType
         else
         {
             fired = false;
-            gunAudioSource.PlayOneShot(audioClips.emptyGunSound);
+            gunAudioSource.PlayOneShot(weaponData.emptyGunSound);
         }
 
         if (magSize == 0 && storageSize == 0)

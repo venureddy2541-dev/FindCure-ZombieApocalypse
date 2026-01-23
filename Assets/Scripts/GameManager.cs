@@ -7,9 +7,11 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using StarterAssets;
+using System;
 
 public class GameManager : MonoBehaviour
 {
+    public static event Action NewGame;
     [SerializeField] int currency = 300;
     int currencyRef;
     TMP_Text currencyBoard;
@@ -152,6 +154,7 @@ public class GameManager : MonoBehaviour
 
     public void PlayAgain()
     { 
+        NewGame?.Invoke();
         SceneLoader.sceneLoader.videoPlayer.Stop();
         audioManager.AudioManagerButtons(false);
         musicPlayer.StopMusic();
@@ -183,6 +186,7 @@ public class GameManager : MonoBehaviour
 
     public void BackToMainScene()
     {
+        NewGame?.Invoke();
         passcodePrinter.text = null;
         SceneLoader.sceneLoader.videoPlayer.Stop();
         musicPlayer.StopMusic();

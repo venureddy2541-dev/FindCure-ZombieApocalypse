@@ -7,25 +7,21 @@ using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] int points;
-    public int healthRef;
-    [SerializeField] int health = 100;
+    public ZombieData zombieData;
+    int health;
 
     bool isActive = false;
     bool enemyDitected = false;
 
-    public float enemyRange = 20f; 
     public float exactDistance;
     [SerializeField] int zombieRotationSpeed;
     public float Speed;
     float angularSpeed;
-    float stopValue = 1.2f;
     public float stopValueRef;
 
     public bool isProvoked = false;
     public bool dead = false;
     public bool reBirth = false;
-    public bool tempPlayerActive = false;
 
     Collider colliderForEnemyLook;
     Vector3 dist;
@@ -43,7 +39,7 @@ public class Enemy : MonoBehaviour
     bool CanMove = true;
     bool newPath = true;
     [SerializeField] LayerMask layers;
-    public float newRadius = 0.25f;
+    float randomWalkPointObstacleCheckRadius = 0.25f;
     Vector3 pos;
     public GameObject player;
     public IsAlive isPlayerAlive;
@@ -59,20 +55,31 @@ public class Enemy : MonoBehaviour
     public float latestHitForce;
     bool isStopped = false;
     public bool canAttack = true;
+    [SerializeField] int hitDamageToVehical;
+    [SerializeField] AudioClip enemyHitByVehicalSound;
+    Collider[] cols;
+    Collider col;
+    Rigidbody rb;
  
     protected virtual void Awake()
     {
+        col = GetComponent<Collider>();
+        rb = GetComponent<Rigidbody>();
+
         slider.gameObject.SetActive(false);
         zombieSounds = GetComponent<AudioSource>();
         navMesh = GetComponent<NavMeshAgent>();
         Speed = navMesh.speed;
         angularSpeed = navMesh.angularSpeed;
-        slider.maxValue = health;
+
+        slider.maxValue = zombieData.health;
+        slider.value = zombieData.health;
+        health = zombieData.health;
     }
 
     protected virtual void OnEnable()
     {
-        stopValueRef = stopValue; 
+        stopValueRef = zombieData.stopValue; 
         if (isActive)
         {
             AudioActivator();
@@ -87,14 +94,13 @@ public class Enemy : MonoBehaviour
 
     protected virtual void Start()
     {
-        slider.value = health;
         AudioActivator();
         isActive = true;
         startPos = transform.position;
-        healthRef = health;
         isPlayerAlive = player.GetComponent<IsAlive>();
         isPlayerMountedAlive = playerMountedObject.GetComponent<IsAlive>();
         enemyAnimator = GetComponentInChildren<Animator>();
+        cols = playerMountedObject.GetComponents<Collider>();
     }
 
     protected virtual void Update()
@@ -103,7 +109,7 @@ public class Enemy : MonoBehaviour
         {
             FindInRangeOrNot();
 
-            if(exactDistance<enemyRange)
+            if(exactDistance<zombieData.provokeRange)
             {
                 if(isStopped){ isStopped = false; }
                 if(enemyAnimator.GetBool("PlayerDead")) { enemyAnimator.SetBool("PlayerDead",false); }
@@ -123,10 +129,9 @@ public class Enemy : MonoBehaviour
 
     void FindInRangeOrNot()
     {
-        Collider[] col = playerMountedObject.GetComponents<Collider>();
         exactDistance = 0f;
         float maxDist = Mathf.Infinity;
-        foreach(Collider newCol in col)
+        foreach(Collider newCol in cols)
         {
             dist = newCol.ClosestPoint(transform.position);
             float distance = Vector3.Distance(transform.position,dist);
@@ -199,7 +204,7 @@ public class Enemy : MonoBehaviour
             NavMeshPath path = new NavMeshPath();
             if(navMesh.CalculatePath(hit.position,path) && path.status == NavMeshPathStatus.PathComplete)
             {
-                Collider[] col = Physics.OverlapSphere(hit.position,newRadius,layers);
+                Collider[] col = Physics.OverlapSphere(hit.position,randomWalkPointObstacleCheckRadius,layers);
                 if(col.Length == 0) 
                 { 
                     navMesh.speed = 0.3f;
@@ -284,6 +289,11 @@ public class Enemy : MonoBehaviour
         return Random.Range(1f,3f);
     }
 
+    public void MountedObject()
+    {
+        cols = playerMountedObject.GetComponents<Collider>();
+    }
+
     public void TakeDamage(int damage , Vector3 hitDirection , float hitForce)
     {
         if(!dead)
@@ -303,14 +313,16 @@ public class Enemy : MonoBehaviour
                 enemyAnimator.SetBool("provoked",true);
             }
 
-            healthRef -= damage;
-            slider.value = healthRef;
-            if(healthRef <= 0)
+            health -= damage;
+            slider.value = health;
+            if(health <= 0)
             {
                 dead = true;
-                if(!reBirth) { GameManager.gameManager.UpdateCash(points); }
+                if(!reBirth) { GameManager.gameManager.UpdateCash(zombieData.points); }
                 ZombieDeadState();
-                gameObject.GetComponent<Collider>().isTrigger = true;
+
+                col.isTrigger = true;
+                
                 slider.gameObject.SetActive(false);
                 Waves wave = transform.parent.parent.GetComponent<Waves>();
                 if(wave)
@@ -319,14 +331,29 @@ public class Enemy : MonoBehaviour
                 }
                 GetComponentInChildren<EnemyAttack>().RegdolActivation();
             }
-            else if(healthRef >= 10 && healthRef <= 20)
+            else if(health >= 10 && health <= 20)
             {
-                if(!enemyAnimator.GetBool("crawl"))
-                {
-                    stopValueRef = stopValueRef - 0.8f;
-                    enemyAnimator.SetBool("crawl",true);
-                }
+                Crawl();
             }
+        }
+    }
+
+    public void HitByVehical(int damage , Vector3 hitDirection , float hitForce)
+    {
+        if(!dead)
+        {
+            TakeDamage(damage,hitDirection,hitForce);
+            zombieSounds.PlayOneShot(enemyHitByVehicalSound);
+            navMesh.enabled = false;
+        }
+    }
+
+    protected virtual void Crawl()
+    {
+        if(!enemyAnimator.GetBool("crawl"))
+        {
+            stopValueRef = stopValueRef - 0.8f;
+            enemyAnimator.SetBool("crawl",true);
         }
     }
 
@@ -354,15 +381,18 @@ public class Enemy : MonoBehaviour
     {
         if (reBirth)
         {
-            gameObject.GetComponent<Collider>().isTrigger = false;
-            navMesh.speed = Speed;
-            navMesh.angularSpeed = angularSpeed;
             dead = false;
             enemyDitected = false;
             isProvoked = false;
+            
+            col.isTrigger = false;
+            navMesh.enabled = true;
+
+            navMesh.speed = Speed;
+            navMesh.angularSpeed = angularSpeed;
             transform.position = startPos;
-            slider.value = health;
-            healthRef = health; 
+            slider.value = zombieData.health;
+            health = zombieData.health; 
             foreach(ZombieInvicible zombieInvicible in zombieInvicibleArray)
             {
                 zombieInvicible.TransparentToOpaque();
@@ -379,37 +409,12 @@ public class Enemy : MonoBehaviour
 
     public int Health
     {
-        set { health = value; }
+        set { zombieData.health = value; }
+        get { return health; }
     }
 
     public IsAlive AliveChanger
     {
         set { isPlayerMountedAlive = value; }
     }
-
-    /*public void IfActiveSetIdle(GameObject currrentPlayerObject)
-    {
-        Debug.Log("Triggered");
-        if(!dead)
-        {   
-            Debug.Log("inside");
-            ToggleEnemyAttack();
-        }
-        player = currrentPlayerObject;
-    }*/
-
-    /*protected virtual void ToggleEnemyAttack()
-    {
-        if(!enemyAnimator.GetBool("PlayerDead") && isProvoked)
-        {
-            Debug.Log("hello");
-            StopEverything();
-        }
-        else if(isProvoked)
-        {
-            Debug.Log("hi");
-            enemyAnimator.SetBool("PlayerDead",false);
-            navMesh.speed = Speed;
-        }
-    }*/
 }
