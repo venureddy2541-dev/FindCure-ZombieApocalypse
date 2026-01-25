@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] Transform wayPointsHolder;
     [SerializeField] GameObject lift;
     [SerializeField] Enterence[] enterence;
+    [SerializeField] GameObject startLevel;
     public List<GameObject> levels;
     GameObject tempWeapon;
     Transform wayPoint;
@@ -128,7 +129,13 @@ public class GameManager : MonoBehaviour
         }
 
         if(level > 0) { UpdateInventory(); }
-        else { currency = 300; UpdateCash(0); weaponHandle.UpdateInitialAmmo();}
+        else 
+        { 
+            startLevel = GameObject.FindWithTag("StartLevel");
+            startLevel.transform.GetChild(0).gameObject.SetActive(true); 
+            currency = 300; UpdateCash(0);
+            weaponHandle.UpdateInitialAmmo();
+        }
     }
 
     void PlacingPlayer()
@@ -317,6 +324,7 @@ public class GameManager : MonoBehaviour
                         yield return null;
                     }
 
+                    startLevel.transform.GetChild(0).gameObject.SetActive(true);
                     yield return new WaitForSeconds(1f);
                     i = 0;
                     unloading = true;
