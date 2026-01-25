@@ -23,6 +23,6 @@ A zombie apocalypse action game developed using Unity, featuring multiple stages
 Venu Reddy
 
 📋 Details
- • NavMesh AI implemented for zombies and drones
- • Option data system for gameplay configuration
- • Optimized performance using culling techniques
+- NavMesh AI implemented for zombies and drones
+- Option data system for gameplay configuration
+- Optimized performance using culling techniques
