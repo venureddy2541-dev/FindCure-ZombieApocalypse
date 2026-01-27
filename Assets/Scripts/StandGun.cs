@@ -218,16 +218,16 @@ public class StandGun : MonoBehaviour
             triggered = false;
             activated = false;
             Deactivator();
-            ChangeEnemyTarget(EnemyTarget.player,player);
+            ChangeEnemyTarget(player);
             isAlive.alive = false;
             blastAnim.Play();
             blastSounds.Play();
         }
     }
 
-    public void ChangeEnemyTarget(EnemyTarget targetName , GameObject targetPos)
+    public void ChangeEnemyTarget(GameObject targetPos)
     {
-        enemyAttackTransition.ChangingObject(enemySpawners,targetName,targetPos,zombieStopDistance);
+        enemyAttackTransition.ChangingObject(enemySpawners,targetPos,zombieStopDistance);
     }
 
     void OnBlast(InputValue value)

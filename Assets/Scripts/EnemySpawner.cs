@@ -53,6 +53,7 @@ public class EnemySpawner : MonoBehaviour
         healthRef = health;
         slider.value = health;
         count = 0;
+        shieldMat.SetFloat("_desolve",1);
         StartCoroutine("EnemySpawnBuilder");
     }
 
@@ -101,14 +102,14 @@ public class EnemySpawner : MonoBehaviour
 
     void GeneratingEnemies()
     {
+        IsAlive isALive = attackPos.GetComponent<IsAlive>();
         for (int i = 0; i < enemyCount; i++)
         {
             int enemyIndex = Random.Range(0, enemyType.Length);
             int enemyPosIndex = Random.Range(0, spawnPos.Length);
             Enemy enemy = Instantiate(enemyType[enemyIndex], transform.position + spawnPos[enemyPosIndex], Quaternion.identity).GetComponent<Enemy>();
-            enemy.playerMountedObject = attackPos;
             enemy.player = orgPlayer;
-            enemy.GetComponentInChildren<DamageManager>().enemyTarget = damageTaker;
+            enemy.ChangeMountedObject(attackPos,isALive);
             enemy.gameObject.SetActive(false);
             enemy.transform.parent = Storage.transform;
             enemy.reBirth = true;

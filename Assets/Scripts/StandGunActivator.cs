@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class StandGunActivator : MonoBehaviour
 {
+    [SerializeField] GameObject trapDoor;
     [SerializeField] AudioSource standGunAS;
     [SerializeField] AudioClip switchAC;
     PlayerManager playerManager;
@@ -14,10 +15,13 @@ public class StandGunActivator : MonoBehaviour
     {
         if(other.CompareTag("Player"))
         {
-            player = other.gameObject;
             Cursor.lockState = CursorLockMode.None;
-            playerManager = other.GetComponent<PlayerManager>();
-            playerHealth = other.GetComponent<PlayerHealth>();
+            if(player == null && player != other.gameObject)
+            {
+                player = other.gameObject;
+                playerManager = other.GetComponent<PlayerManager>();
+                playerHealth = other.GetComponent<PlayerHealth>();
+            }
             playerManager.ToggleShootingOrThrowing(FireStateEnum.CantFire);
         }
     }
@@ -37,6 +41,7 @@ public class StandGunActivator : MonoBehaviour
 
         if(playerManager.GamePaused || /*!playerManager.reloading*/ standGun.gunHealthRef <= 0){ return; }
 
+        trapDoor.SetActive(true);
         standGun.AssignPlayer(player);
         playerHealth.ActivateStandGunMode();
         standGun.ActivateStandGunMode();

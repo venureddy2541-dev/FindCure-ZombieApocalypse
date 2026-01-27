@@ -340,7 +340,7 @@ public class Car : MonoBehaviour
         }
         else
         {
-            Debug.Log("Can't Exit");
+            MessageBox.messageBox.PressentMessage("Can't Exit , Move to Free Space",null);
         }
     }
 
@@ -356,9 +356,9 @@ public class Car : MonoBehaviour
         weapon.GetComponent<CarWeapon>().enabled = false;
 
         playerHealth.ActivateNormalMode();
-        if(carHealthRef <= 0) { playerHealth.HealthConditions(playerHealth.playerHealthRef); }
+        if(carHealthRef <= 0) { playerHealth.HealthConditions(playerHealth.health); }
 
-        if(enemySpawners.All(x => x != null) && waves.Count > 0) { enemyAttackTransition.ChangingObject(enemySpawners,EnemyTarget.player,player,zombieStopDistance); }
+        if(enemySpawners.All(x => x != null) && waves.Count > 0) { enemyAttackTransition.ChangingObject(enemySpawners,player,zombieStopDistance); }
         Cursor.visible = true;
         gameObject.GetComponent<Car>().enabled = false;
     }

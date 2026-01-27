@@ -4,23 +4,19 @@ using System.Collections;
 
 public class EnemyAttackTransition : MonoBehaviour
 {
-    EnemyTarget targetNameRef;
-    GameObject targetPosRef;
+    GameObject targetRef;
 
-    public void ChangingObject(EnemySpawner[] enemySpawners , EnemyTarget targetName , GameObject targetPos,float stopDistance)
+    public void ChangingObject(EnemySpawner[] enemySpawners , GameObject target,float stopDistance)
     {
-        targetNameRef = targetName;
-        targetPosRef = targetPos;
-        IsAlive isAlive = targetPos.GetComponent<IsAlive>();
+        targetRef = target;
+        IsAlive isAlive = target.GetComponent<IsAlive>();
 
         foreach(EnemySpawner enemySpawner in enemySpawners)
         {
-            enemySpawner.attackPos = targetPos;
+            enemySpawner.attackPos = target;
             foreach(Enemy enemy in enemySpawner.enemies)
             {
-                enemy.stopValueRef = stopDistance;
-                enemy.AliveChanger = isAlive;
-                enemy.playerMountedObject = targetPos;
+                enemy.ChangeMountedObject(target,isAlive,stopDistance);
             }
         }
 
@@ -35,8 +31,7 @@ public class EnemyAttackTransition : MonoBehaviour
         {
             foreach(Enemy enemy in enemySpawner.enemies)
             {
-                enemy.MountedObject();
-                enemy.GetComponentInChildren<DamageManager>().enemyTarget = targetNameRef;
+                enemy.ChangeTarget();
             }
         }
     }

@@ -27,8 +27,7 @@ public class PlayerManager : MonoBehaviour
     public bool fireState = false;
     public bool granadeState = false;
     bool previousGranadeState = false;
-    Vector3 direction;
-    public float speed = 100f;
+    public float granadeThrowSpeed = 100f;
 
     [Header("Cinemachine Components")]
     public CinemachineImpulseSource weaponShake;
@@ -183,7 +182,7 @@ public class PlayerManager : MonoBehaviour
         GameObject gb = Instantiate(granade, granadePos.position, granadePos.rotation);
         gb.GetComponent<Granade>().ExecuteGranade(time);
         Rigidbody rb = gb.GetComponent<Rigidbody>();
-        rb.AddRelativeForce(Vector3.forward * speed, ForceMode.Impulse);
+        rb.AddRelativeForce(Vector3.forward * granadeThrowSpeed, ForceMode.Impulse);
     }
 
     public void WeaponAssigner(WeaponType weaponTypeRef)

@@ -68,7 +68,10 @@ public class Enemy : MonoBehaviour
         col = GetComponent<Collider>();
         rb = GetComponent<Rigidbody>();
         damageManager = GetComponentInChildren<DamageManager>();
-        damageManager.ChangeTarget(playerMountedObject);
+        if(playerMountedObject != null ) 
+        {
+            ChangeMountedObject(playerMountedObject,playerMountedObject.GetComponent<IsAlive>()); 
+        }
 
         slider.gameObject.SetActive(false);
         zombieSounds = GetComponent<AudioSource>();
@@ -102,9 +105,8 @@ public class Enemy : MonoBehaviour
         isActive = true;
         startPos = transform.position;
         isPlayerAlive = player.GetComponent<IsAlive>();
-        isPlayerMountedAlive = playerMountedObject.GetComponent<IsAlive>();
+
         enemyAnimator = GetComponentInChildren<Animator>();
-        cols = playerMountedObject.GetComponents<Collider>();
     }
 
     protected virtual void Update()
@@ -240,13 +242,9 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    void AttackAndChase()
-    {
-        
-    }
-
     protected virtual void Behaviour()
     {
+        if(!enemyAnimator.GetBool("running")) { enemyAnimator.SetFloat("RunIndex",CurrentChaseType()); }
         ChaseTarget();
     }
 
@@ -268,7 +266,6 @@ public class Enemy : MonoBehaviour
 
     public void ChaseTarget()
     {
-        if(!enemyAnimator.GetBool("running")) { enemyAnimator.SetFloat("RunIndex",CurrentChaseType()); }
         enemyAnimator.SetBool("running",true);
         navMesh.speed = Speed;
         navMesh.angularSpeed = angularSpeed;
@@ -321,9 +318,27 @@ public class Enemy : MonoBehaviour
         return Random.Range(1,3);
     }
 
-    public void MountedObject()
+    public void ChangeMountedObject(GameObject targetRef,IsAlive isALiveRef)
     {
-        cols = playerMountedObject.GetComponents<Collider>();
+        Change(targetRef,isALiveRef);
+        damageManager.ChangeTarget(targetRef);
+    }
+
+    public void ChangeMountedObject(GameObject targetRef,IsAlive isALiveRef,float stopDist)
+    {
+        Change(targetRef,isALiveRef);
+        stopValueRef = stopDist;
+    }
+
+    void Change(GameObject targetRef,IsAlive isALiveRef)
+    {
+        playerMountedObject = targetRef;
+        isPlayerMountedAlive = isALiveRef;
+        cols = targetRef.GetComponents<Collider>();
+    }
+
+    public void ChangeTarget()
+    {
         damageManager.ChangeTarget(playerMountedObject);
     }
 
@@ -444,10 +459,5 @@ public class Enemy : MonoBehaviour
     {
         set { zombieData.health = value; }
         get { return health; }
-    }
-
-    public IsAlive AliveChanger
-    {
-        set { isPlayerMountedAlive = value; }
     }
 }

@@ -13,7 +13,7 @@ using System;
 
 public class PlayerHealth : MonoBehaviour
 {
-    public static event Action<PlayerState> PlayerDead;
+    [SerializeField] PlayerData playerData;
     [SerializeField] GameObject playerUIComponenets;
     [SerializeField] PlayerInput playerInputSystem;
     [SerializeField] EnemyAttackTransition enemyAttackTransition;
@@ -43,18 +43,12 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] AudioClip playerGotHitSound;
     [SerializeField] AudioClip healAudio;
 
-    public int playerHealth = 100;
-    public int playerHealthRef;
-    public int minHealth = 20;
-    [SerializeField] float speed = 1.2f;
+    public int health;
 
     [SerializeField] GameObject playerBody;
-    float coolDownTime = 25f;
-    float invisibleTime = 5f;
     int healthKitCount;
-    [SerializeField] int helathInc = 40;
     float zombieStopDistance = 1f;
-    public bool lowHealth = true;
+    public bool lowHealth = false;
     public bool loopControler = false;
     float tempPlayerTimer;
 
@@ -70,6 +64,8 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] float explosionForce;
     [SerializeField] float explosionRadius;
 
+    bool mountedMode = false;
+
     void Awake()
     {
         crossHairRectTrans = crossHair.GetComponent<RectTransform>();
@@ -79,19 +75,16 @@ public class PlayerHealth : MonoBehaviour
         playerDeathText = GameObject.FindWithTag("DeadMenu");
         isAlive = GetComponent<IsAlive>();
 
-        playerHealthRef = playerHealth;
-        healthText.text = playerHealthRef.ToString();
-        slider.value = playerHealthRef;
+        healthKitCount = playerData.healthKitCount;
+        health = playerData.health;
+        healthText.text = health.ToString();
+        slider.maxValue = health;
+        slider.value = health;
     }
 
     void OnDisable()
     {
-        PlayerDead?.Invoke(PlayerState.InActive);
-    }
-
-    void OnDestroy()
-    {
-        PlayerDead?.Invoke(PlayerState.Dead);
+        StopAllCoroutines();
     }
     
     void Start()
@@ -127,9 +120,9 @@ public class PlayerHealth : MonoBehaviour
             tempPlayerTimer = 0f;
             loopControler = true;
 
-            while (tempPlayerTimer <= invisibleTime)
+            while (tempPlayerTimer <= playerData.invisibleTime)
             {
-                invisibilImg.fillAmount = 1-(tempPlayerTimer/invisibleTime);
+                invisibilImg.fillAmount = 1-(tempPlayerTimer/playerData.invisibleTime);
                 tempPlayerTimer += Time.deltaTime;
                 yield return null;
             }
@@ -142,12 +135,12 @@ public class PlayerHealth : MonoBehaviour
             int playerLayer = LayerMask.NameToLayer("Player");
             int enemyLayer = LayerMask.NameToLayer("PlayerHit");
             Physics.IgnoreLayerCollision(playerLayer,enemyLayer,false);
-            tempPlayerTimer = coolDownTime;
+            tempPlayerTimer = playerData.coolDownTime;
         }
 
         while(tempPlayerTimer >= 0f)
         {
-            invisibilImg.fillAmount = 1-(tempPlayerTimer/coolDownTime);
+            invisibilImg.fillAmount = 1-(tempPlayerTimer/playerData.coolDownTime);
             tempPlayerTimer -= Time.deltaTime;
             yield return null;
         }
@@ -157,7 +150,7 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int damage)
     {
         if(!isAlive.alive) { return; }
-        if(lowHealth){ StartCoroutine("GotHit"); }
+        if(!mountedMode && !lowHealth){ StartCoroutine("GotHit"); }
         HealthConditions(damage);
     }
     
@@ -172,24 +165,24 @@ public class PlayerHealth : MonoBehaviour
 
     public void HealthConditions(int damage)
     {
-        playerHealthRef -= damage;
-        playerHealthRef = (playerHealthRef < 0)? 0 : playerHealthRef;
-        slider.value = playerHealthRef;
-        healthText.text = playerHealthRef.ToString();
+        health -= damage;
+        health = (health < 0)? 0 : health;
+        slider.value = health;
+        healthText.text = health.ToString();
 
-        if (playerHealthRef <= minHealth && playerHealthRef > 0 && lowHealth)
+        if (health <= 0)
         {
-            HealthState(false);
+            Dead();
         }
 
-        if (playerHealthRef > minHealth && !lowHealth)
+        if (health <= playerData.minHealth && health > 0 && !lowHealth)
         {
             HealthState(true);
         }
-        
-        if (playerHealthRef <= 0)
+
+        if (health > playerData.minHealth && lowHealth)
         {
-            Dead();
+            HealthState(false);
         }
     }
 
@@ -235,16 +228,16 @@ public class PlayerHealth : MonoBehaviour
     public void HealthState(bool currentState)
     {
         lowHealth = currentState;
-        vignette.active = !currentState;
+        vignette.active = currentState;
 
-        if(!currentState)
+        if(currentState)
         {
             requiredAudios.clip = playerBreathAudio;
             requiredAudios.Play();
             StartCoroutine("Blinking");
             playerManager.canZoom = false;
-            playerManager.SetWeaponScrolling(!currentState);
-            playerManager.SetScope(currentState); 
+            playerManager.SetWeaponScrolling(currentState);
+            playerManager.SetScope(!currentState); 
         }
         else
         {
@@ -258,23 +251,23 @@ public class PlayerHealth : MonoBehaviour
     {
         while(true)
         {
-            float lerpValRef = Mathf.Sin(Time.time*speed);
+            float lerpValRef = Mathf.Sin(Time.time*playerData.lowHealthBlinkingSpeed);
             float lerpVal = (lerpValRef + 1)/2;
             vignette.intensity.value = lerpVal;
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
     }
 
     void OnHealth(InputValue value)
     {
-        if(value.isPressed && healthKitCount > 0 && playerHealthRef < playerHealth && !playerManager.GamePaused)
+        if(value.isPressed && healthKitCount > 0 && health < playerData.health && !playerManager.GamePaused)
         {
             requiredAudios.PlayOneShot(healAudio);
             healthKitCount--;
             healthKitText.text = "COUNT : " + healthKitCount; 
-            int healthRef = playerHealthRef + helathInc;
-            int health = (healthRef > playerHealth)? playerHealth - playerHealthRef : helathInc;
-            HealthConditions(-health);
+            int healthRef = health + playerData.healthIncForHealthKit;
+            int tempHealth = (healthRef > playerData.health)? playerData.health - health : playerData.healthIncForHealthKit;
+            HealthConditions(-tempHealth);
         }
     }
 
@@ -298,31 +291,33 @@ public class PlayerHealth : MonoBehaviour
     {
         if(other.CompareTag("LaserBeam"))
         {
-            TakeDamage(playerHealthRef);
+            TakeDamage(playerData.health);
         }
     }
 
     public void ActivateDriveMode()
     {   
-        HealthState(true);
+        mountedMode = true;
+        HealthState(false);
         playerInputSystem.enabled = false;
         playerUIComponents.SetActive(false);
         playerCam.Priority = 0;
-        if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,EnemyTarget.car,car.gameObject,zombieStopDistance); }
+        if(enemySpawners.All(x => x != null)) { enemyAttackTransition.ChangingObject(enemySpawners,car.gameObject,zombieStopDistance); }
         
         gameObject.SetActive(false);
     }
 
     public void ActivateNormalMode()
     {
+        mountedMode = false;
         playerManager.granadeTimeText.text = null;
         playerInputSystem.enabled = true;
         playerUIComponenets.SetActive(true);
         playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
         playerCam.Priority = 20;
-        if (playerHealth <= minHealth)
+        if (playerData.health <= playerData.minHealth)
         {
-            HealthState(false);
+            HealthState(true);
         }
         gameObject.SetActive(true);
         StartCoroutine(InvisibilityManager(true)); 
@@ -332,7 +327,8 @@ public class PlayerHealth : MonoBehaviour
 
     public void ActivateStandGunMode()
     {
-        HealthState(true);
+        mountedMode = true;
+        HealthState(false);
         playerInputSystem.enabled = false;
         playerUIComponents.SetActive(false);
         playerCam.Priority = 0;

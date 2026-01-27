@@ -31,7 +31,6 @@ public class FinalStage : MonoBehaviour
         if(count == 4)
         {
             MessageBox.messageBox.PressentMessage("Warning: Autonomous defense systems activated",firingRobotsActivated);
-            //count = 4;
             PlayerHealthIncreaser(Player,1000);
             Invoke("AcctivateFiringRobots",5);
         }
@@ -71,8 +70,7 @@ public class FinalStage : MonoBehaviour
     {
         PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
         playerHealth.slider.maxValue = health;
-        playerHealth.playerHealth = health;
-        playerHealth.playerHealthRef = health;
+        playerHealth.health = health;
         playerHealth.HealthConditions(0);
     }
 }
