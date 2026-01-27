@@ -24,6 +24,7 @@ public class SceneLoader : MonoBehaviour
 
         sceneLoader = this;
         DontDestroyOnLoad(gameObject);
+        PlayBackGroundVideo();
     }
 
     public void SceneLoadManager(int currentScene,bool backToMainMenu)
@@ -57,7 +58,14 @@ public class SceneLoader : MonoBehaviour
 
         if(backToMainMenu)
         {
+            PlayBackGroundVideo();
             gameStart.ActivateButtons();
         }
+    }
+
+    public void PlayBackGroundVideo()
+    {
+        videoPlayer.targetCamera = GameObject.FindWithTag("MainCamera").GetComponent<Camera>();
+        videoPlayer.Play();
     }
 }

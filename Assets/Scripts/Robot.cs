@@ -17,7 +17,6 @@ public class Robot : MonoBehaviour
     NavMeshAgent navMesh;
 
     AudioSource blastSound;
-    [SerializeField] ParticleSystem blastParticleSystem;
 
     [SerializeField] float rotateSpeed = 10f;
     float chaseDist = 20f;
@@ -120,7 +119,12 @@ public class Robot : MonoBehaviour
             GameManager.gameManager.UpdateCash(points);
             blastSound.Play();
             GetComponentInParent<FinalStage>().NormalRobotsDeadCount();
-            Instantiate(blastParticleSystem,transform.position + new Vector3(0,1f,0),Quaternion.identity);
+
+            ParticleSystem currentEffect = RequiredParticles.instance.GetspawnerBlastParticle();
+            currentEffect.transform.position = transform.position + new Vector3(0,1f,0);
+            currentEffect.transform.rotation = transform.rotation;
+            currentEffect.Play();
+
             Destroy(gameObject);
         }
     }

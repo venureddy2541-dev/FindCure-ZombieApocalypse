@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class DamageManager : MonoBehaviour
 {
-    //public EnemyTarget initialEnemyTarget;
     [SerializeField] int enemyHitDamage = 25;
     public EnemyTarget enemyTarget;
     AudioSource audioSource;
@@ -13,56 +12,61 @@ public class DamageManager : MonoBehaviour
     StandGunShield standGunShield;
     StandGun standGun;
     Car car;
+    string target;
 
     void Awake()
     {
         audioSource = GetComponentInParent<AudioSource>();
-
-        standGunShield = FindFirstObjectByType<StandGunShield>();
-        standGun = FindFirstObjectByType<StandGun>();
-        car = FindFirstObjectByType<Car>();
     }
 
     public void AnimtionEvent()
     {
-        switch(enemyTarget) 
+        switch(target) 
         {
-            case  EnemyTarget.player :
+            case  "Player" :
                 
-                playerHealth = FindFirstObjectByType<PlayerHealth>();
-                if(playerHealth)
-                {
-                    HitAudios(playerHitSound);
-                    playerHealth.TakeDamage(enemyHitDamage);
-                }
+                HitAudios(playerHitSound);
+                playerHealth.TakeDamage(enemyHitDamage);
                 break;
 
-            case EnemyTarget.gun :
+            case "StandGun" :
 
-                if(standGun)
-                {
-                    HitAudios(otherHitSound);
-                    standGun.GunDamage(enemyHitDamage);
-                }
+                HitAudios(otherHitSound);
+                standGun.GunDamage(enemyHitDamage);
                 break;
 
-            case EnemyTarget.car :
+            case "Car" :
 
-                if(car)
-                {
-                    HitAudios(otherHitSound);
-                    car.CarDamage(enemyHitDamage);
-                }
+                HitAudios(otherHitSound);
+                car.CarDamage(enemyHitDamage);
                 break;
 
-            case EnemyTarget.gunShield :
+            case "Shield" :
 
-                if(standGunShield)
-                {
-                    HitAudios(otherHitSound);
-                    standGunShield.GunShieldDamage(enemyHitDamage);
-                }
+                HitAudios(otherHitSound);
+                standGunShield.GunShieldDamage(enemyHitDamage);
                 break;
+        }
+    }
+
+    public void ChangeTarget(GameObject currentTarget)
+    {
+        target = currentTarget.name;
+        if(target == "Player")
+        {
+            playerHealth = currentTarget.GetComponent<PlayerHealth>();
+        }
+        else if(target == "StandGun")
+        {
+            standGun = currentTarget.GetComponent<StandGun>();
+        }
+        else if(target == "Shield")
+        {
+            standGunShield = currentTarget.GetComponent<StandGunShield>();
+        }
+        else if(target == "Car")
+        {
+            car = currentTarget.GetComponent<Car>();
         }
     }
 

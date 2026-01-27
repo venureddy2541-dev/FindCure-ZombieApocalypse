@@ -57,6 +57,7 @@ public class StandGun : MonoBehaviour
     PlayerManager playerManager;
     PlayerHealth playerHealth;
     [SerializeField] float hitForce;
+    [SerializeField] Canvas canvas;
 
     void Awake()
     {
@@ -112,7 +113,10 @@ public class StandGun : MonoBehaviour
     {
         while (activated && !GameManager.gameManager.GamePause && player.activeSelf)
         {
-            gunCrossHair.position = Input.mousePosition;
+            Vector2 pos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform,Input.mousePosition,canvas.worldCamera,out pos);
+            gunCrossHair.localPosition = pos;
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, layers))
@@ -188,7 +192,6 @@ public class StandGun : MonoBehaviour
         standGunUIComponents.gameObject.SetActive(true);
         standGunInput.enabled = true;
         gunCrossHair.gameObject.SetActive(true);  
-        EnemySpawners.SetActive(true);
         activated = true;
     }
 

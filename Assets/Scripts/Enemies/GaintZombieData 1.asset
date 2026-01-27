@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: GaintZombieData 1
   m_EditorClassIdentifier: Assembly-CSharp::ZombieData
   points: 10
-  health: 150
+  health: 200
   provokeRange: 20
-  stopValue: 1.2
+  stopValue: 1

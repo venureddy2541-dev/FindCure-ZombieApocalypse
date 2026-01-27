@@ -98,7 +98,8 @@ public class EndAnimation : MonoBehaviour
         float lerp;
         float[] eyeCLosing = {1f,0.5f,1f}; 
 
-        for(int i = 0;i<3;i++)
+        int i = 0;
+        while(i<eyeCLosing.Length)
         {
             lerp = 0f;
             currentIntesity = increment;
@@ -109,7 +110,8 @@ public class EndAnimation : MonoBehaviour
                 vignette.intensity.value = Mathf.Lerp(currentIntesity,increment,lerp);
                 yield return null;
             }
-            yield return new WaitForEndOfFrame();
+            yield return null;
+            i++;
         }
 
         endTitle.gameObject.SetActive(true);
@@ -130,7 +132,7 @@ public class EndAnimation : MonoBehaviour
 
         endTitle.gameObject.SetActive(false);
         vignette.intensity.value = 0;
-        SceneLoader.sceneLoader.videoPlayer.Play();
+        SceneLoader.sceneLoader.PlayBackGroundVideo();
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
         GameManager.gameManager.NewGameMenu();

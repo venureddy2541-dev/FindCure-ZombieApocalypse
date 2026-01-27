@@ -15,4 +15,4 @@ MonoBehaviour:
   points: 2
   health: 50
   provokeRange: 20
-  stopValue: 1.2
+  stopValue: 1

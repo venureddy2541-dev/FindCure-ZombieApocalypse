@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
+    bool inAttackRange = false;
     public ZombieData zombieData;
     int health;
 
@@ -41,6 +42,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] LayerMask layers;
     float randomWalkPointObstacleCheckRadius = 0.25f;
     Vector3 pos;
+    DamageManager damageManager;
     public GameObject player;
     public IsAlive isPlayerAlive;
     public GameObject playerMountedObject;
@@ -65,6 +67,8 @@ public class Enemy : MonoBehaviour
     {
         col = GetComponent<Collider>();
         rb = GetComponent<Rigidbody>();
+        damageManager = GetComponentInChildren<DamageManager>();
+        damageManager.ChangeTarget(playerMountedObject);
 
         slider.gameObject.SetActive(false);
         zombieSounds = GetComponent<AudioSource>();
@@ -232,8 +236,13 @@ public class Enemy : MonoBehaviour
         if(exactDistance <= stopValueRef + StarterAssetsInputs.starterAssetsInputs.additionalDist)
         {
             EnemyAudio();
-            AttackTarget();
+            AttackRange();
         }
+    }
+
+    void AttackAndChase()
+    {
+        
     }
 
     protected virtual void Behaviour()
@@ -259,24 +268,47 @@ public class Enemy : MonoBehaviour
 
     public void ChaseTarget()
     {
-        canAttack = true;
-        enemyAnimator.SetFloat("AttackType",0f);
+        if(!enemyAnimator.GetBool("running")) { enemyAnimator.SetFloat("RunIndex",CurrentChaseType()); }
         enemyAnimator.SetBool("running",true);
         navMesh.speed = Speed;
         navMesh.angularSpeed = angularSpeed;
         navMesh.SetDestination(playerMountedObject.transform.position);
+        float offset = StarterAssetsInputs.starterAssetsInputs.additionalDist;
+
+        if(exactDistance < stopValueRef + 0.3f + offset && exactDistance > stopValueRef + offset)
+        {
+            inAttackRange = true;
+            EnemyAudio();
+            Attack();
+        }
+        else
+        {
+            canAttack = true;
+            enemyAnimator.SetFloat("AttackType",0f);
+            inAttackRange = false;
+        }
     }
 
-    void AttackTarget()
+    int CurrentChaseType()
+    {
+        return Random.Range(0,4);
+    }
+
+    void AttackRange()
+    {
+        enemyAnimator.SetBool("running", false);
+        navMesh.speed = 0;
+        navMesh.angularSpeed = 0;
+
+        Attack();
+    }
+
+    void Attack()
     {
         Vector3 rotation = playerMountedObject.transform.position - transform.position;
         rotation.y = 0;
         Quaternion newRotation = Quaternion.LookRotation(rotation);
         transform.rotation = Quaternion.Slerp(transform.rotation,newRotation,Time.deltaTime*zombieRotationSpeed);
-
-        enemyAnimator.SetBool("running", false);
-        navMesh.speed = 0;
-        navMesh.angularSpeed = 0;
         if(canAttack)
         {
             canAttack = false;
@@ -284,14 +316,15 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    protected virtual float CurrentAttackType()
+    protected virtual int CurrentAttackType()
     {
-        return Random.Range(1f,3f);
+        return Random.Range(1,3);
     }
 
     public void MountedObject()
     {
         cols = playerMountedObject.GetComponents<Collider>();
+        damageManager.ChangeTarget(playerMountedObject);
     }
 
     public void TakeDamage(int damage , Vector3 hitDirection , float hitForce)

@@ -39,9 +39,9 @@ public class GiantZombie : Enemy
         bloodSplit.StopAttack();
     }
 
-    protected override float CurrentAttackType()
+    protected override int CurrentAttackType()
     {
-        return Random.Range(1f,2f);
+        return Random.Range(1,2);
     }
 
     protected override void Crawl()

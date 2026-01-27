@@ -43,6 +43,7 @@ public class CarWeapon : MonoBehaviour
     
     Rigidbody fireBallRb;
     Collider fireBallCol;
+    [SerializeField] Canvas canvas;
 
 
     void Start()
@@ -55,7 +56,10 @@ public class CarWeapon : MonoBehaviour
 
     void Update()
     {
-        crossHair.position = Input.mousePosition;
+        Vector2 pos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform,Input.mousePosition,canvas.worldCamera,out pos);
+        crossHair.localPosition = pos;
+        WeaponRotation();
 
         FireBallShooter();
         MachineGun();
@@ -64,11 +68,6 @@ public class CarWeapon : MonoBehaviour
     void FireBallShooter()
     {
         isPressed = Input.GetKey(KeyCode.LeftShift);
-
-        if(isPressed)
-        {
-            WeaponRotation();
-        }
 
         if(triggered && isPressed)
         {
