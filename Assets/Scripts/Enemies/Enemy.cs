@@ -68,10 +68,6 @@ public class Enemy : MonoBehaviour
         col = GetComponent<Collider>();
         rb = GetComponent<Rigidbody>();
         damageManager = GetComponentInChildren<DamageManager>();
-        if(playerMountedObject != null ) 
-        {
-            ChangeMountedObject(playerMountedObject,playerMountedObject.GetComponent<IsAlive>()); 
-        }
 
         slider.gameObject.SetActive(false);
         zombieSounds = GetComponent<AudioSource>();
@@ -105,6 +101,9 @@ public class Enemy : MonoBehaviour
         isActive = true;
         startPos = transform.position;
         isPlayerAlive = player.GetComponent<IsAlive>();
+        isPlayerMountedAlive = playerMountedObject.GetComponent<IsAlive>();
+        cols = playerMountedObject.GetComponents<Collider>();
+        damageManager.ChangeTarget(playerMountedObject);
 
         enemyAnimator = GetComponentInChildren<Animator>();
     }
@@ -318,23 +317,12 @@ public class Enemy : MonoBehaviour
         return Random.Range(1,3);
     }
 
-    public void ChangeMountedObject(GameObject targetRef,IsAlive isALiveRef)
-    {
-        Change(targetRef,isALiveRef);
-        damageManager.ChangeTarget(targetRef);
-    }
-
-    public void ChangeMountedObject(GameObject targetRef,IsAlive isALiveRef,float stopDist)
-    {
-        Change(targetRef,isALiveRef);
-        stopValueRef = stopDist;
-    }
-
-    void Change(GameObject targetRef,IsAlive isALiveRef)
+    public void ChangeMountedObject(GameObject targetRef,IsAlive isALiveRef,float stopDist,Collider[] colsRef)
     {
         playerMountedObject = targetRef;
         isPlayerMountedAlive = isALiveRef;
-        cols = targetRef.GetComponents<Collider>();
+        cols = colsRef;
+        stopValueRef = stopDist;
     }
 
     public void ChangeTarget()

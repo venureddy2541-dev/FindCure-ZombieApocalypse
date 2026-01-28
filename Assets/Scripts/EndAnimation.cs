@@ -23,11 +23,12 @@ public class EndAnimation : MonoBehaviour
     [SerializeField] int speed;
     [SerializeField] TMP_Text endTitle;
     [SerializeField] Volume volume;
-    Vignette vignette;
+    [SerializeField] Vignette vignette;
 
     void Start()
     {
         pd = GetComponent<PlayableDirector>();
+        volume.profile.TryGet(out vignette);
     }
 
     public void ParentingVaccine()
@@ -85,11 +86,9 @@ public class EndAnimation : MonoBehaviour
 
     IEnumerator Blinking()
     {
-        while (vignette == null)
-        {
-            volume.profile.TryGet(out vignette);
-            yield return null;
-        }
+        vignette.active = true;
+
+        yield return new WaitForSeconds(0.5f);
         
         vignette.color.value = Color.black;
         
@@ -98,20 +97,17 @@ public class EndAnimation : MonoBehaviour
         float lerp;
         float[] eyeCLosing = {1f,0.5f,1f}; 
 
-        int i = 0;
-        while(i<eyeCLosing.Length)
+        for(int i=0;i<eyeCLosing.Length;i++)
         {
             lerp = 0f;
             currentIntesity = increment;
             increment = eyeCLosing[i];
             while (lerp < 1f)
             {
-                lerp += Time.deltaTime; 
+                lerp += Time.deltaTime;
                 vignette.intensity.value = Mathf.Lerp(currentIntesity,increment,lerp);
                 yield return null;
             }
-            yield return null;
-            i++;
         }
 
         endTitle.gameObject.SetActive(true);

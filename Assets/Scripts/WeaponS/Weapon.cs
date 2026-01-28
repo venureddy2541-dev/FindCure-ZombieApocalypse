@@ -120,8 +120,6 @@ public class WeaponType : MonoBehaviour
             if(magSize == 0)
             { 
                 fired = false;
-                if(gunAudioSource.loop) { gunAudioSource.loop = false; }
-                gunAudioSource.Stop();
                 AutoReload();
             }
         }
@@ -138,15 +136,15 @@ public class WeaponType : MonoBehaviour
 
     public virtual void ToggleWeaponReload(bool canReload)
     {
-        if(canReload) 
-        { 
-            GunReload(); 
+        if(canReload)
+        {
+            GunReload();
         }
-        else 
-        { 
+        else
+        {
             gunAudioSource.Stop();
-            StopCoroutine(ReloadTime()); 
-            reloading = true; 
+            StopCoroutine(ReloadTime());
+            reloading = true;
             reloaded = false;
         }
     }
@@ -160,8 +158,6 @@ public class WeaponType : MonoBehaviour
             reloading = false;
             if (storageSize > 0)
             {
-                gunAudioSource.clip = weaponData.reloadSound;
-                gunAudioSource.Play();
                 reloaded = true;
                 StartCoroutine(ReloadTime());
             }
@@ -175,21 +171,31 @@ public class WeaponType : MonoBehaviour
 
     IEnumerator ReloadTime()
     {
-        yield return new WaitForSeconds(weaponData.reloadTime);
-        if (storageSize >= weaponData.magSize)
+        while(!shootRate)
         {
-            temp = weaponData.magSize - magSize;
+            yield return null;
+        }
+
+        gunAudioSource.clip = weaponData.reloadSound;
+        gunAudioSource.Play();
+
+        yield return new WaitForSeconds(weaponData.reloadTime);
+
+        temp = weaponData.magSize - magSize;
+        if (storageSize >= temp)
+        {
             magSize += temp;
             storageSize -= temp;
         }
         else
         {
-            magSize = storageSize;
+            magSize += storageSize;
             storageSize = 0;
         }
         
         magText.text = magSize.ToString() + "/" + storageSize.ToString();
 
+        gunAudioSource.Stop();
         gunAudioSource.clip = weaponData.weaponSound;
         reloading = true;
         reloaded = false;
@@ -242,8 +248,7 @@ public class WeaponType : MonoBehaviour
 
                 HitEffect(RequiredParticles.instance.GetEnemyHitEffect());
 
-                damage = weaponData.weaponDamage;
-                hit.collider.GetComponentInParent<Enemy>().TakeDamage(damage,-ray.direction,weaponData.bulletHitForce);
+                hit.collider.GetComponentInParent<Enemy>().TakeDamage(weaponData.weaponDamage,-ray.direction,weaponData.bulletHitForce);
             }
 
             if (hit.collider.CompareTag("EnemySpawner"))
@@ -252,8 +257,7 @@ public class WeaponType : MonoBehaviour
 
                 HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
-                damage = weaponData.weaponDamage;
-                hit.collider.GetComponent<EnemySpawner>().DamageTaker(damage);
+                hit.collider.GetComponent<EnemySpawner>().DamageTaker(weaponData.weaponDamage);
             }
 
             if (hit.collider.CompareTag("Wood"))
@@ -265,7 +269,7 @@ public class WeaponType : MonoBehaviour
                 Crate crate = hit.collider.gameObject.GetComponent<Crate>();
                 if (crate)
                 {
-                    crate.TakeDamage(DamageByWeapon(hit.point));
+                    crate.TakeDamage(weaponData.weaponDamage);
                 }
             }
 
@@ -278,7 +282,7 @@ public class WeaponType : MonoBehaviour
                 OilBarrel barrel = hit.collider.gameObject.GetComponent<OilBarrel>();
                 if (barrel)
                 {
-                    barrel.TakeDamage(DamageByWeapon(hit.point));
+                    barrel.TakeDamage(weaponData.weaponDamage);
                 }
             }
 
@@ -307,10 +311,9 @@ public class WeaponType : MonoBehaviour
 
                 HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
-                damage = weaponData.weaponDamage;
                 RoboBomb roboBomb = hit.collider.GetComponentInParent<RoboBomb>();
-                if (roboBomb) roboBomb.TakeDamage(damage);
-                else hit.collider.GetComponentInParent<Robot>().TakeDamage(damage);
+                if (roboBomb) roboBomb.TakeDamage(weaponData.weaponDamage);
+                else hit.collider.GetComponentInParent<Robot>().TakeDamage(weaponData.weaponDamage);
             }
 
             if (hit.collider.CompareTag("WalkingRobots"))
@@ -319,8 +322,7 @@ public class WeaponType : MonoBehaviour
 
                 HitEffect(RequiredParticles.instance.GetMetalHitEffect());
 
-                damage = weaponData.weaponDamage;
-                hit.collider.GetComponentInParent<WalkingRobots>().TakeDamage(damage);
+                hit.collider.GetComponentInParent<WalkingRobots>().TakeDamage(weaponData.weaponDamage);
             }
         }
     }
@@ -335,19 +337,6 @@ public class WeaponType : MonoBehaviour
         currentEffect.transform.position = hit.point;
         currentEffect.transform.rotation = Quaternion.LookRotation(hit.normal);
         currentEffect.Play();
-    }
-
-    int DamageByWeapon(Vector3 hitPoint)
-    {
-        return weaponData.weaponDamage;
-        //return DistByDamage(hitPoint);
-    }
-
-    int DistByDamage(Vector3 hitPos)
-    {
-        float dist = Vector3.Distance(transform.position, hitPos);
-        int damage = Mathf.RoundToInt(((weaponData.weaponDamage * 10f) / dist));
-        return damage;
     }
 
     public bool BulletAdder(int ammoAdder, int max)

@@ -66,7 +66,19 @@ public class RobotGenerator : MonoBehaviour
         health -= damage;
         if(health <= 0)
         {
-            GetComponentInParent<FinalStage>().NormalRobotsDeadCount();
+            int remainingRobotsCount = 0;
+            for(int i=0;i<robots.Count;i++)
+            {
+                if(robots[i].activeSelf)
+                {
+                    remainingRobotsCount++;
+                }
+            }
+            
+            FinalStage finalStage = GetComponentInParent<FinalStage>();
+            finalStage.UpdateCount(remainingRobotsCount);
+            
+            finalStage.NormalRobotsDeadCount();
             Instantiate(blastParticles,transform.position,transform.rotation);
             Destroy(gameObject);
         }

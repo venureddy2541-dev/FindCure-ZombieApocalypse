@@ -98,6 +98,7 @@ public class Car : MonoBehaviour
     void Start()
     {
         carHealthRef = carHealth;
+        carSlider.maxValue = carHealth;
         carSlider.value = carHealth;
         carSounds = GetComponent<AudioSource>();
         cinemachineInputAxisController = carCam.gameObject.GetComponent<CinemachineInputAxisController>();

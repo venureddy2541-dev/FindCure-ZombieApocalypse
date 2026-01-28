@@ -109,10 +109,10 @@ public class EnemySpawner : MonoBehaviour
             int enemyPosIndex = Random.Range(0, spawnPos.Length);
             Enemy enemy = Instantiate(enemyType[enemyIndex], transform.position + spawnPos[enemyPosIndex], Quaternion.identity).GetComponent<Enemy>();
             enemy.player = orgPlayer;
-            enemy.ChangeMountedObject(attackPos,isALive);
-            enemy.gameObject.SetActive(false);
+            enemy.playerMountedObject = attackPos;
             enemy.transform.parent = Storage.transform;
             enemy.reBirth = true;
+            enemy.gameObject.SetActive(false);
             enemies.Add(enemy);
         }
     }

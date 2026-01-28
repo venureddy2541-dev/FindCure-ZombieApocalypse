@@ -23,13 +23,18 @@ public class FlameThrower : WeaponType
         {
             OnFire();
             yield return new WaitForSeconds(weaponData.fireRate);
+            shootRate = true;
         }
 
         if(!fired)
         {
-            var emission = mazilFlash.emission;
-            emission.enabled = fired;
-            gunAudioSource.Stop();
+            if(gunAudioSource.loop)
+            {
+                var emission = mazilFlash.emission;
+                emission.enabled = fired;
+                gunAudioSource.loop = false;
+                gunAudioSource.Stop();
+            }
         }
     }
 
@@ -37,22 +42,22 @@ public class FlameThrower : WeaponType
     {
         if (magSize > 0)
         {
+            shootRate = false;
             magSize--;
             magText.text = magSize.ToString() + "/" + storageSize.ToString();
 
             if (!gunAudioSource.isPlaying)
             {
+                gunAudioSource.loop = true;
                 gunAudioSource.clip = weaponData.weaponSound;
                 gunAudioSource.Play();
+                var emission = mazilFlash.emission;
+                emission.enabled = fired;
             }
-
-            var emission = mazilFlash.emission;
-            emission.enabled = fired;
 
             if (magSize == 0)
             {
                 fired = false;
-                gunAudioSource.Stop();
                 AutoReload();
             }
         }

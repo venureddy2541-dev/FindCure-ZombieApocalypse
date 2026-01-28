@@ -16,7 +16,7 @@ public class StandGunActivator : MonoBehaviour
         if(other.CompareTag("Player"))
         {
             Cursor.lockState = CursorLockMode.None;
-            if(player == null && player != other.gameObject)
+            if(player == null || player != other.gameObject)
             {
                 player = other.gameObject;
                 playerManager = other.GetComponent<PlayerManager>();
@@ -39,7 +39,7 @@ public class StandGunActivator : MonoBehaviour
     {
         standGunAS.PlayOneShot(switchAC);
 
-        if(playerManager.GamePaused || /*!playerManager.reloading*/ standGun.gunHealthRef <= 0){ return; }
+        if(playerManager.GamePaused || standGun.gunHealthRef <= 0){ return; }
 
         trapDoor.SetActive(true);
         standGun.AssignPlayer(player);

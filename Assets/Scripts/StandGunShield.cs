@@ -14,6 +14,7 @@ public class StandGunShield : MonoBehaviour
     {
         isAlive = GetComponent<IsAlive>();
         gunShieldHealthRef = gunShieldHealth;
+        shiledSlider.maxValue = gunShieldHealthRef;
         shiledSlider.value = gunShieldHealthRef;
     }
 

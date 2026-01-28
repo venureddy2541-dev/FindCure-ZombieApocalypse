@@ -35,7 +35,14 @@ public class WalkingRobots : MonoBehaviour
 
     void Update()
     {
-        if(!isAlive.alive || playerHealth.invisibleState) { var emission = gun.emission; emission.enabled = false; anim.SetBool("Attack",false); navMesh.speed = 0; return;}
+        if(!isAlive.alive || playerHealth.invisibleState) 
+        { 
+            var emission = gun.emission; 
+            emission.enabled = false; 
+            anim.SetBool("Attack",true); 
+            navMesh.speed = 0; 
+            return;
+        }
 
         float distance = Vector3.Distance(transform.position,player.transform.position);
 

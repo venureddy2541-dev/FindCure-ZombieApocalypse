@@ -109,8 +109,11 @@ public class WeaponHandle : MonoBehaviour
 
         if (Physics.Raycast(origin.position,origin.forward,out hit,weaponsEndPoints[index],layers,QueryTriggerInteraction.Ignore))
         { 
+            if(!didHit)
+            {
+                playerManager.ToggleShootingOrThrowing(FireStateEnum.CantFire);
+            }
             didHit = true;
-            playerManager.ToggleShootingOrThrowing(FireStateEnum.CantFire);
             weapons.position = CantShootPos.position;
             weapons.rotation = Quaternion.Slerp(weapons.rotation,CantShootPos.rotation,Time.deltaTime*Speed);
         }
@@ -142,6 +145,7 @@ public class WeaponHandle : MonoBehaviour
 
     public bool AssignAmmo(int ammoSize,int maxAmmo,int index)
     {
+        if(weaponTypes.Count <= index) return false;
         return weaponTypes[index].BulletAdder(ammoSize,maxAmmo);        
     }
 

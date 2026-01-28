@@ -5,18 +5,21 @@ using System.Collections;
 public class EnemyAttackTransition : MonoBehaviour
 {
     GameObject targetRef;
+    IsAlive isAlive;
+    Collider[] cols;
 
     public void ChangingObject(EnemySpawner[] enemySpawners , GameObject target,float stopDistance)
     {
         targetRef = target;
-        IsAlive isAlive = target.GetComponent<IsAlive>();
+        isAlive = target.GetComponent<IsAlive>();
+        cols = target.GetComponents<Collider>();
 
         foreach(EnemySpawner enemySpawner in enemySpawners)
         {
             enemySpawner.attackPos = target;
             foreach(Enemy enemy in enemySpawner.enemies)
             {
-                enemy.ChangeMountedObject(target,isAlive,stopDistance);
+                enemy.ChangeMountedObject(target,isAlive,stopDistance,cols);
             }
         }
 

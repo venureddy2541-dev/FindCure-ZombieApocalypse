@@ -37,7 +37,7 @@ public class StandGun : MonoBehaviour
     bool triggered = true;
     bool activated = false;
     bool isRunning = true;
-    bool pressed;
+    bool isFirePressed;
     [SerializeField] float speed = 200f;
     float timer = 0f;
     float radius = 10f;
@@ -68,6 +68,7 @@ public class StandGun : MonoBehaviour
         standGunSounds = GetComponent<AudioSource>();
 
         gunHealthRef = gunHealth;
+        standGunSlider.maxValue = gunHealth;
         standGunSlider.value = gunHealth;
         standGunUIComponents.SetActive(false);
         standGunInput.enabled = false;
@@ -82,7 +83,7 @@ public class StandGun : MonoBehaviour
     {
         if(GameManager.gameManager.GamePause) { return; }
         
-        if (pressed) return;
+        if (isFirePressed) return;
 
         activated = false;
         Deactivator();
@@ -94,14 +95,14 @@ public class StandGun : MonoBehaviour
         {
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
-            pressed = false;
+            isFirePressed = false;
             GameManager.gameManager.PauseMenu("standgun");
         }
     }
 
     void OnFire(InputValue value)
     {
-        pressed = value.isPressed;
+        isFirePressed = value.isPressed;
         if(activated && isRunning)
         {
             isRunning = false;
@@ -133,7 +134,7 @@ public class StandGun : MonoBehaviour
                 eulers.z = 0;
                 GunShell.transform.rotation = Quaternion.Slerp(GunShell.transform.rotation, Quaternion.Euler(eulers), Time.deltaTime * rotationSpeed);
             }
-            if (pressed)
+            if (isFirePressed)
             {
                 GunAudio();
                 var emission = bullets.emission;
@@ -203,7 +204,7 @@ public class StandGun : MonoBehaviour
         standGunInput.enabled = false;
         gunCamera.Priority = 0;
         gunCrossHair.gameObject.SetActive(false);
-        if(player.activeSelf)
+        if(player.activeInHierarchy)
         {
             playerHealth.ActivateNormalMode();
         }

@@ -44,6 +44,7 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] AudioClip healAudio;
 
     public int health;
+    public int maxHealth;
 
     [SerializeField] GameObject playerBody;
     int healthKitCount;
@@ -76,6 +77,7 @@ public class PlayerHealth : MonoBehaviour
         isAlive = GetComponent<IsAlive>();
 
         healthKitCount = playerData.healthKitCount;
+        maxHealth = playerData.health;
         health = playerData.health;
         healthText.text = health.ToString();
         slider.maxValue = health;
@@ -260,7 +262,7 @@ public class PlayerHealth : MonoBehaviour
 
     void OnHealth(InputValue value)
     {
-        if(value.isPressed && healthKitCount > 0 && health < playerData.health && !playerManager.GamePaused)
+        if(value.isPressed && healthKitCount > 0 && health < maxHealth && !playerManager.GamePaused)
         {
             requiredAudios.PlayOneShot(healAudio);
             healthKitCount--;
@@ -269,6 +271,14 @@ public class PlayerHealth : MonoBehaviour
             int tempHealth = (healthRef > playerData.health)? playerData.health - health : playerData.healthIncForHealthKit;
             HealthConditions(-tempHealth);
         }
+    }
+
+    public void SetHealth(int healthRef)
+    {
+        maxHealth = healthRef;
+        slider.maxValue = healthRef;
+        health = healthRef;
+        HealthConditions(0);
     }
 
     void OnParticleCollision(GameObject gb)

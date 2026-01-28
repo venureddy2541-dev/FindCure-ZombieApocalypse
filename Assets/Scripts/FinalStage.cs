@@ -49,6 +49,11 @@ public class FinalStage : MonoBehaviour
         }
     }  
 
+    public void UpdateCount(int remainingRobots)
+    {
+        count += remainingRobots; 
+    }
+
     void AcctivateFiringRobots()
     {
         FiringRobots.SetActive(true);
@@ -68,9 +73,6 @@ public class FinalStage : MonoBehaviour
 
     void PlayerHealthIncreaser(GameObject other,int health)
     {
-        PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-        playerHealth.slider.maxValue = health;
-        playerHealth.health = health;
-        playerHealth.HealthConditions(0);
+        other.GetComponent<PlayerHealth>().SetHealth(health);
     }
 }
