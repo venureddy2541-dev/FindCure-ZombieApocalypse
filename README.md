@@ -3,7 +3,7 @@
 A zombie apocalypse action game developed using Unity, featuring multiple stages with increasing difficulty, zombie spawners, and intense combat using weapons and vehicles.
 
 ## ▶️ Gameplay
-- 🎮 Play on itch.io: https://sharkrivel.itch.io/towerdefence
+- 🎮 Play on itch.io: https://sharkrivel.itch.io/findcure-zombieapocalypse
 - 📺 YouTube gameplay: https://youtu.be/bzg6gpiDcRs?si=q2OL1toE79zDb8Sy
 
 ## 🧟 Game Features
