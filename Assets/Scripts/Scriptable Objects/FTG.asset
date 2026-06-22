@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 243127bb0315b93469a41b47ad058b7c, type: 3}
+  m_Name: FTG
+  m_EditorClassIdentifier: 
+  fireRate: 0.1
+  reloadTime: 2
+  weaponZoom: 40
+  magSize: 150
+  maxAmmo: 500
+  weaponDamage: 5
+  bulletHitForce: 0
+  range: 0
+  bulletSpread: 0
+  onScopeBulletSpread: 0
+  xRecoil: 0
+  yRecoil: 0
+  reloadSound: {fileID: 8300000, guid: d9e18df53a1d58042a6dbfd12d54b4d3, type: 3}
+  weaponSound: {fileID: 8300000, guid: d39000ce9eea4a94d88587a6a5c1e2a4, type: 3}
+  emptyGunSound: {fileID: 8300000, guid: 9158afb6966d445db9caf1dccf7acbcc, type: 3}

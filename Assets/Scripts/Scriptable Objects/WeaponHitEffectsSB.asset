@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de19ebc62f6458e49bad10244e78ecd2, type: 3}
+  m_Name: WeaponHitEffectsSB
+  m_EditorClassIdentifier: 
+  flameEffect: {fileID: 198679442476388764, guid: f293a2dcc753a4a489fefe7f8f312d69, type: 3}
+  sandHitEffect: {fileID: 6465786638492900378, guid: ed97c39d204552a43a0afa01b3621dbc, type: 3}
+  enemyHitEffect: {fileID: 1992226573776216944, guid: e135b4c35cba00245bccbea8f889195a, type: 3}
+  stoneHitEffect: {fileID: 4416846776905315134, guid: c58662e769de78b489a3eb31ee3b4a67, type: 3}
+  woodHitEffect: {fileID: 2185512131698128394, guid: fd26f7b487e080743adc1f2fe52b080f, type: 3}
+  metalHitEffect: {fileID: 7393540447414411348, guid: 19f280e824bc12a459f8d3ed9b77d8fc, type: 3}
+  electricShieldHitEffect: {fileID: 1979711396349996473, guid: 26fd11e20aec44841aa663070958f883, type: 3}
+  bombRobotBlastParticle: {fileID: 7098690737744751534, guid: 79d4f34fad805fd4bbdb8dcd537094de, type: 3}
+  spiderRobotBlastParticle: {fileID: 7098690737744751534, guid: 5f944b1efd37a2045b908cb1cd049c2e, type: 3}
+  spawnerBlastParticle: {fileID: 7098690737744751534, guid: a21e8d4f431135d4da9834ebae703cbf, type: 3}
+  barralEffect: {fileID: 2182186737976554218, guid: 267ce9284a84c1d41898119d6f3709d8, type: 3}
+  createEffect: {fileID: 1000012471779828, guid: 3ea7dd4dcf7841b42bb6c3b042a2a9f2, type: 3}

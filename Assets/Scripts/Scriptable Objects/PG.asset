@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 243127bb0315b93469a41b47ad058b7c, type: 3}
+  m_Name: PG
+  m_EditorClassIdentifier: 
+  fireRate: 0.05
+  reloadTime: 1
+  weaponZoom: 35
+  magSize: 20
+  maxAmmo: 100
+  weaponDamage: 10
+  bulletHitForce: 5
+  range: 20
+  bulletSpread: 0.02
+  onScopeBulletSpread: 0
+  xRecoil: 0.5
+  yRecoil: 0.3
+  reloadSound: {fileID: 8300000, guid: e22df284ac403694cbd67c6b60aac12b, type: 3}
+  weaponSound: {fileID: 8300000, guid: 2203773368e4340d98c114f55c2dd7fd, type: 3}
+  emptyGunSound: {fileID: 8300000, guid: 9158afb6966d445db9caf1dccf7acbcc, type: 3}

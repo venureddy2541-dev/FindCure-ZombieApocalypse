@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb19669b948d89844a5d221aa9229205, type: 3}
+  m_Name: WeaponAudioClips
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponAudioClipsSB
+  electricShieldHitSound: {fileID: 8300000, guid: c87cdc0e144cbe140943fae6af895b87, type: 3}
+  woodHitSound: {fileID: 8300000, guid: 7384f586addcfa742a6ccda148b558bb, type: 3}
+  wallHitSound: {fileID: 8300000, guid: 117b83f91aa930d49be5112e6fed66d0, type: 3}
+  glassHitSound: {fileID: 8300000, guid: 16f95c7b49c6c0b4380b2f0ee6ebcd31, type: 3}
+  metalHitSound: {fileID: 8300000, guid: c87cdc0e144cbe140943fae6af895b87, type: 3}
+  sandHitSound: {fileID: 8300000, guid: 9627de8b16a551642b7040947e6ed2bd, type: 3}
+  enemyHitSound: {fileID: 8300000, guid: 5072a94fa6887024985a35d9cf66c949, type: 3}
+  emptyGunSound: {fileID: 8300000, guid: 9158afb6966d445db9caf1dccf7acbcc, type: 3}
+  collectSound: {fileID: 8300000, guid: 9158afb6966d445db9caf1dccf7acbcc, type: 3}
