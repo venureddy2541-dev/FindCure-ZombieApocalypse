@@ -118,7 +118,7 @@ public class Robot : MonoBehaviour
             slider.gameObject.SetActive(false);
             GameManager.gameManager.UpdateCash(points);
             blastSound.Play();
-            GetComponentInParent<FinalStage>().NormalRobotsDeadCount();
+            GetComponentInParent<FinalStage>().RobotsDeadCount();
 
             ParticleSystem currentEffect = RequiredParticles.instance.GetspawnerBlastParticle();
             currentEffect.transform.position = transform.position + new Vector3(0,1f,0);

@@ -30,6 +30,7 @@ public class CarActivator : MonoBehaviour
     {
         if(other.CompareTag("Player"))
         {
+            if(!playerManager) playerManager = other.GetComponent<PlayerManager>();
             SetToPlayer();
         }
     }

@@ -9,7 +9,8 @@ public class Helper : MonoBehaviour
 
     void Awake()
     {
-        musicPlayer = GameObject.FindWithTag("MusicPlayer").GetComponent<MusicPlayer>();
+        GameObject gb = GameObject.FindWithTag("MusicPlayer");
+        if(gb) gb.TryGetComponent(out musicPlayer);
     }
     
     public void SpawnersDead()

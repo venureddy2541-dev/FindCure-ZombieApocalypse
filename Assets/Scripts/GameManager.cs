@@ -40,6 +40,8 @@ public class GameManager : MonoBehaviour
     public int LevelRef { get { return level; }}
     private bool pause = false;
 
+    public bool GamePause { get { return pause; } }
+
     public static GameManager gameManager;
     AudioManager audioManager;
     MusicPlayer musicPlayer;
@@ -68,6 +70,7 @@ public class GameManager : MonoBehaviour
         playerManager = player.GetComponent<PlayerManager>();
         playerHealth = player.GetComponent<PlayerHealth>();
         weaponHandle = player.GetComponent<WeaponHandle>();
+        if(!AudioManager.audioManager) return;
         audioManager = AudioManager.audioManager;
         musicPlayer = audioManager.musicPlayerRef;
         musicPlayer.ResetMusicPlayer();
@@ -132,7 +135,9 @@ public class GameManager : MonoBehaviour
         else 
         { 
             startLevel = GameObject.FindWithTag("StartLevel");
-            startLevel.transform.GetChild(0).gameObject.SetActive(true); 
+            startLevel.transform.GetChild(0).gameObject.SetActive(true);
+            ZombiesManager.zombiesManager.ResetActiveZombies();
+            startLevel.GetComponent<EnemyGetter>().GetEnemies();
             currency = 300; UpdateCash(0);
             weaponHandle.UpdateInitialAmmo();
         }
@@ -154,16 +159,12 @@ public class GameManager : MonoBehaviour
         weaponHandle.UpdateAmmoSizes(Ammo);
     }
 
-    public bool GamePause
-    {
-        get { return pause; }
-    }
-
     public void PlayAgain()
     { 
+        ZombiesManager.zombiesManager.ResetZombies();
         NewGame?.Invoke();
         SceneLoader.sceneLoader.videoPlayer.Stop();
-        audioManager.AudioManagerButtons(false);
+        audioManager.AllSliderButtons(false);
         musicPlayer.StopMusic();
         ButtonSound();
         Time.timeScale = 1f;
@@ -176,6 +177,7 @@ public class GameManager : MonoBehaviour
 
     public void LoadPreviousStage()
     {
+        ZombiesManager.zombiesManager.ResetZombies();
         passcodePrinter.text = null;
         musicPlayer.StopMusic();
         ButtonSound();
@@ -193,6 +195,7 @@ public class GameManager : MonoBehaviour
 
     public void BackToMainScene()
     {
+        ZombiesManager.zombiesManager.ResetZombies();
         NewGame?.Invoke();
         passcodePrinter.text = null;
         SceneLoader.sceneLoader.videoPlayer.Stop();
@@ -201,7 +204,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         playerDeathMenu.SetActive(false);
         pauseMenu.SetActive(false);
-        audioManager.AudioManagerButtons(false);
+        audioManager.AllSliderButtons(false);
         newGameMenu.SetActive(false);
         SceneLoader.sceneLoader.SceneLoadManager(SceneManager.GetActiveScene().buildIndex - 1,true);
         
@@ -214,7 +217,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         pause = false;
         pauseMenu.SetActive(false);
-        audioManager.AudioManagerButtons(false);
+        audioManager.AllSliderButtons(false);
         switch (presentPlayerState)
         {
             case "player" :
@@ -241,7 +244,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
         pause = true;
         pauseMenu.SetActive(true);
-        audioManager.AudioManagerButtons(true);
+        if(audioManager) audioManager.AllSliderButtons(true);
     }
     
     void ButtonSound()
@@ -257,6 +260,11 @@ public class GameManager : MonoBehaviour
     public void DeadMenu()
     {
         if(car) { car.Deactivate(); }
+        Invoke("ActivateDeadMenu",3f);
+    }
+
+    void ActivateDeadMenu()
+    {
         playerDeathMenu.SetActive(true);
     }
 
@@ -292,10 +300,10 @@ public class GameManager : MonoBehaviour
 
     IEnumerator StartCoroutine()
     {
-        StarterAssetsInputs starterAssetsInputs = player.GetComponent<StarterAssetsInputs>();
+        Inputs inputs = player.GetComponent<Inputs>();
         PlayerInput playerInput = player.GetComponent<PlayerInput>();
         playerInput.enabled = false;
-        starterAssetsInputs.sprint = false;
+        inputs.sprint = false;
 
         yield return new WaitForSeconds(1f);
 
@@ -325,10 +333,12 @@ public class GameManager : MonoBehaviour
                     }
 
                     startLevel.transform.GetChild(0).gameObject.SetActive(true);
+                    ZombiesManager.zombiesManager.ResetActiveZombies();
+                    startLevel.GetComponent<EnemyGetter>().GetEnemies(); 
                     yield return new WaitForSeconds(1f);
                     i = 0;
                     unloading = true;
-                    audioManager.SetNormal();
+                    if(audioManager != null) audioManager.SetNormal();
                 }
             }
 

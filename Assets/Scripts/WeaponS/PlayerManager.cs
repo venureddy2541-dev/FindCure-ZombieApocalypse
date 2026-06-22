@@ -9,7 +9,11 @@ using UnityEngine.UI;
 
 public class PlayerManager : MonoBehaviour
 {
-    FirstPersonController firstPersonController;
+    [SerializeField] Transform playerCameraRoot;
+    [SerializeField] Animator animator;
+    [SerializeField] Transform NormalPoint;
+    [SerializeField] Transform FpsHands;
+    PlayerController playerController;
     public AudioSource audioSource;
     public WeaponHandle weaponHandle;
     public WeaponType currentWeapon;
@@ -24,10 +28,13 @@ public class PlayerManager : MonoBehaviour
     public AudioClip granadeThrowSound;
     public TMP_Text granadeCountText;
     public TMP_Text granadeTimeText;
-    public bool fireState = false;
+    int granadeCount;
+    public int GranadeCount { get { return granadeCount; } }
+    public bool fireState = true;
     public bool granadeState = false;
     bool previousGranadeState = false;
     public float granadeThrowSpeed = 100f;
+
 
     [Header("Cinemachine Components")]
     public CinemachineImpulseSource weaponShake;
@@ -38,8 +45,9 @@ public class PlayerManager : MonoBehaviour
     public GameObject crossHair;
     public GameObject weaponTexts;
     float time;
-    int granadeCount;
     public bool fired;
+
+    //Keep this true intially
     public bool idle = true;
     bool previousfireState = false;
 
@@ -51,25 +59,34 @@ public class PlayerManager : MonoBehaviour
     //Tougles between weapons and granade
     public bool onZoom = false;
     public bool canZoom = true;
-
+    public bool CanZoom { get { return canZoom; } set { canZoom = value; } }
+    SensitivityManager sensitivityManager;
     public SpecialOperation specialOperation;
 
     void OnEnable()
     {
+        if(SensitivityManager.sensitivityManager) SensitivityManager.sensitivityManager.UpdateAdsSensy += UpdateSensy;
         Cursor.lockState = CursorLockMode.Locked;
         if(isOn) { flashLight.SetActive(true); }
     }
 
     void Start()
     {
-        firstPersonController = GetComponent<FirstPersonController>();
-
+        sensitivityManager = SensitivityManager.sensitivityManager;
+        playerController = GetComponent<PlayerController>();
+        playerController.RotationSpeed = (sensitivityManager)? sensitivityManager.sensitivity[SensyType.ADS] : 1f;
         UpdateGranadeText(granadeCount);
     }
 
     void OnDisable()
     {
+        if(SensitivityManager.sensitivityManager) SensitivityManager.sensitivityManager.UpdateAdsSensy -= UpdateSensy;
         if(isOn) { flashLight.SetActive(false); }
+    }
+
+    void UpdateSensy(float value)
+    {
+        playerController.RotationSpeed = (sensitivityManager)? sensitivityManager.sensitivity[SensyType.ADS] : 1f;
     }
 
     void OnSpecialOperation(InputValue value)
@@ -93,11 +110,19 @@ public class PlayerManager : MonoBehaviour
 
     void OnZoomed(InputValue other)
     {
-        if(idle && !canZoom) return;
+        if(idle || !canZoom) return;
+        if(!other.isPressed) return;
 
-        onZoom = other.isPressed;
-        SetWeaponScrolling(!onZoom);
+        if(!currentWeapon.CanZoom()){ return; }
+
+        ToggleScopeOnAndOff(!onZoom);
+    }
+
+    public void ToggleScopeOnAndOff(bool state)
+    {
+        onZoom = state;
         SetScope(onZoom);
+        SetWeaponScrolling(!onZoom);
     }
 
     public void SetWeaponScrolling(bool currentZoomState)
@@ -107,17 +132,37 @@ public class PlayerManager : MonoBehaviour
 
     public void SetScope(bool currentZoomState)
     {
-        crossHair.SetActive(currentWeapon.Zoom(currentZoomState));
+        if(crossHair) crossHair.SetActive(!currentWeapon.Zoom(currentZoomState));
+
+        if(currentZoomState)
+        { 
+            if(!currentWeapon.AdsPoint) return;
+            FpsHands.localPosition = currentWeapon.AdsPoint.localPosition;
+            FpsHands.localRotation = currentWeapon.AdsPoint.localRotation;  
+            playerController.RotationSpeed = (sensitivityManager)? sensitivityManager.sensitivity[weaponHandle.GetWeaponType.sensyType] : 1f;
+        }
+        else 
+        { 
+            FpsHands.localPosition = NormalPoint.localPosition;
+            FpsHands.localRotation = NormalPoint.localRotation;  
+            playerController.RotationSpeed = (sensitivityManager)? sensitivityManager.sensitivity[SensyType.ADS] : 1f;
+        }
     }
 
     void OnGranade(InputValue value)
     {
-        if(idle) return;
+        if(idle || granadeCount <= 0) return;
 
+        ToggleFireAndGranadeState();
+    }
+
+    void ToggleFireAndGranadeState()
+    {
         fired = false;
         currentWeapon.Fire(fired);
         currentWeapon.ToggleWeaponReload(false);
         granadeState = !granadeState;
+        animator.SetBool("GranadeState",granadeState);
         fireState = !granadeState;
     }
 
@@ -125,7 +170,16 @@ public class PlayerManager : MonoBehaviour
     {
         if(idle || fired || !fireState) return;
         
-        currentWeapon.ToggleWeaponReload(true);
+        if(currentWeapon.ToggleWeaponReload(true))
+        {
+            DisableScope();
+        }
+    }
+
+    public void DisableScope()
+    {
+        if(onZoom) ToggleScopeOnAndOff(false);
+        canZoom = false;
     }
 
     void OnFiring(InputValue other)
@@ -138,9 +192,10 @@ public class PlayerManager : MonoBehaviour
             currentWeapon.Fire(fired);
         }
 
-        if (granadeState && granadeCount > 0)
+        if (granadeState)
         {
-            if (fired)
+            if(granadeCount <= 0) ToggleFireAndGranadeState();
+            else if(fired)
             {
                 granadeTimeText.text = "";
                 time = 5f;
@@ -152,6 +207,7 @@ public class PlayerManager : MonoBehaviour
 
     IEnumerator GranadeTimer()
     {
+        animator.SetTrigger("Hold");
         granadeInHand = true;
         while (time >= 0)
         {
@@ -170,6 +226,7 @@ public class PlayerManager : MonoBehaviour
         if (!fired && granadeInHand)
         {
             granadeInHand = false;
+            animator.SetTrigger("Throw");
             ThrowGranade();
         }
     }
@@ -179,7 +236,7 @@ public class PlayerManager : MonoBehaviour
         granadeCount--;
         granadeCountText.text = granadeCount.ToString();
         audioSource.PlayOneShot(granadeThrowSound);
-        GameObject gb = Instantiate(granade, granadePos.position, granadePos.rotation);
+        GameObject gb = Instantiate(granade, granadePos.position, playerCameraRoot.rotation);
         gb.GetComponent<Granade>().ExecuteGranade(time);
         Rigidbody rb = gb.GetComponent<Rigidbody>();
         rb.AddRelativeForce(Vector3.forward * granadeThrowSpeed, ForceMode.Impulse);
@@ -187,7 +244,7 @@ public class PlayerManager : MonoBehaviour
 
     public void WeaponAssigner(WeaponType weaponTypeRef)
     {
-        if(!currentWeapon.reloading){ currentWeapon.ToggleWeaponReload(false); }
+        if(currentWeapon.reloading){ currentWeapon.ToggleWeaponReload(false); }
 
         currentWeapon = weaponTypeRef;
         currentWeapon.UpdateWeaponData();
@@ -206,11 +263,12 @@ public class PlayerManager : MonoBehaviour
         gamePaused = true;
         idle = gamePaused;
         weaponHandle.canScroll = !gamePaused;
-        firstPersonController.enabled = !gamePaused;
-        StopShootingOrThrowing();
+        playerController.enabled = !gamePaused;
+        audioSource.Stop();
+        ToggleShootingOrThrowing(FireStateEnum.CantFire);
 
         StopCoroutine("ReloadTime");
-        currentWeapon.Zoom(false);
+        if(onZoom) ToggleScopeOnAndOff(false);
         GameManager.gameManager.PauseMenu("player");
     }
 
@@ -219,38 +277,54 @@ public class PlayerManager : MonoBehaviour
         gamePaused = false;
         idle = gamePaused;
         weaponHandle.canScroll = !gamePaused;
-        firstPersonController.enabled = !gamePaused;
-        ActivateShootingOrThrowing();
+        playerController.enabled = !gamePaused;
+        ToggleShootingOrThrowing(FireStateEnum.CanFire);
     }
 
     public void IdleState(bool state)
     {
         idle = state;
         if(state)
-        { 
-            currentWeapon.Fire(!state); 
+        {
+            currentWeapon.Fire(!state);
             currentWeapon.ToggleWeaponReload(!state);
         }
     }
 
     public void ToggleShootingOrThrowing(FireStateEnum fireStateEnum)
     {
-        if(fireStateEnum == FireStateEnum.CanFire){ ActivateShootingOrThrowing(); }
-        else{ StopShootingOrThrowing(); }
+        if(fireStateEnum == FireStateEnum.CanFire)
+        {
+            EnableCursor();
+            ActivateShootingOrThrowing();
+        }
+        else
+        {
+            DisableCursor();
+            StopShootingOrThrowing();
+        }
+    }
+
+    public void DisableCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        crossHair.SetActive(false);
+    }
+
+    public void EnableCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        crossHair.SetActive(true);
     }
 
     public void StopShootingOrThrowing()
     {
-        Cursor.lockState = CursorLockMode.None;
-        crossHair.SetActive(false);
         if(fireState) { previousfireState = fireState; currentWeapon.fired = false; fireState = false; }
         if(granadeState) { previousGranadeState = granadeState; granadeState = false; }
     }
 
-    void ActivateShootingOrThrowing()
+    public void ActivateShootingOrThrowing()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        crossHair.SetActive(true);
         if(previousfireState) { previousfireState = fireState; fireState = true; }
         if(previousGranadeState) { previousGranadeState = granadeState; granadeState = true; }
     }
@@ -261,19 +335,23 @@ public class PlayerManager : MonoBehaviour
         {
             granadeCount++;
         }
-        granadeCountText.text = granadeCount.ToString();
-    }
-
-    public int GranadeCount
-    {
-        get { return granadeCount; }
+        if(granadeCountText) granadeCountText.text = granadeCount.ToString();
     }
 
     public void StopAll()
     {
         idle = true;
-        StopShootingOrThrowing();
-        canZoom = false;
-        SetScope(false); 
+        DisableScope();
+    }
+
+    public bool CheckSprintConditions()
+    {
+        if(!currentWeapon.shootRate || currentWeapon.reloading) return false;
+        else return true;
+    }
+
+    public void ResetBlockedConstraints()
+    {
+        canZoom = true;
     }
 }

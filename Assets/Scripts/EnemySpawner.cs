@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class EnemySpawner : MonoBehaviour
 {
+    [SerializeField] EnemyGetter enemyGetter;
     [SerializeField] int points;
     int remainingZombiesCount;
     int spawnerCount = 0;
@@ -18,8 +19,6 @@ public class EnemySpawner : MonoBehaviour
 
     [SerializeField] Slider slider;
     AudioSource blastSounds;
-
-    [SerializeField] GameObject[] enemyType;
     Vector3[] spawnPos = { new Vector3(-6f, 0, 0), new Vector3(6f, 0, 0), new Vector3(0, 0, -6f), new Vector3(0, 0, 6f) };
     public List<Enemy> enemies = new List<Enemy>();
 
@@ -29,11 +28,13 @@ public class EnemySpawner : MonoBehaviour
     public GameObject attackPos;
     [SerializeField] GameObject Storage;
     IsAlive playerIsAlive;
+    PlayerHealth playerHealth;
     SpawnerRebirth spawnerRebirth;
     Waves waves;
     [SerializeField] GameObject electricShield;
     [SerializeField] Collider electricShieldCol;
     Material shieldMat;
+    bool gotZombies = false;
 
     void Awake()
     {
@@ -42,8 +43,8 @@ public class EnemySpawner : MonoBehaviour
         waves = GetComponentInParent<Waves>();
         playerIsAlive = orgPlayer.GetComponent<IsAlive>();
         blastSounds = GameObject.FindWithTag("BlastAudio").GetComponent<AudioSource>();
-        GeneratingEnemies();
         slider.maxValue = health;
+        playerHealth = attackPos.GetComponent<PlayerHealth>();
     }
 
     void OnEnable()
@@ -100,20 +101,17 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    void GeneratingEnemies()
+    void GetZombies()
     {
         IsAlive isALive = attackPos.GetComponent<IsAlive>();
-        for (int i = 0; i < enemyCount; i++)
+        enemies = enemyGetter.GetEnemiesByList();
+        for (int i = 0; i < enemies.Count; i++)
         {
-            int enemyIndex = Random.Range(0, enemyType.Length);
             int enemyPosIndex = Random.Range(0, spawnPos.Length);
-            Enemy enemy = Instantiate(enemyType[enemyIndex], transform.position + spawnPos[enemyPosIndex], Quaternion.identity).GetComponent<Enemy>();
-            enemy.player = orgPlayer;
-            enemy.playerMountedObject = attackPos;
-            enemy.transform.parent = Storage.transform;
-            enemy.reBirth = true;
-            enemy.gameObject.SetActive(false);
-            enemies.Add(enemy);
+            enemies[i].transform.position = transform.position + spawnPos[enemyPosIndex];
+            enemies[i].AssiginPlayerData(orgPlayer,attackPos);
+            enemies[i].navMesh.enabled = true;
+            enemies[i].enabled = true;
         }
     }
 
@@ -128,6 +126,11 @@ public class EnemySpawner : MonoBehaviour
             child.gameObject.SetActive(true);
             yield return new WaitForSeconds(0.3f);
         }
+        
+        if(!gotZombies)  
+        { 
+            gotZombies = true; GetZombies(); 
+        }
         InvokeRepeating("EnemySpawn", 1f, 1f);
         electricShieldCol.enabled = false;
         StartCoroutine(ElectricShield());
@@ -137,29 +140,24 @@ public class EnemySpawner : MonoBehaviour
     {
         if(attackPos == null || !playerIsAlive.alive) return;
 
-        PlayerHealth playerHealth = attackPos.GetComponent<PlayerHealth>();
         if (playerHealth)
         {
             if(playerHealth.loopControler) return;
         }
 
-        if (count < enemyCount)
+        if (gameObject.activeInHierarchy && !enemies[count].gameObject.activeInHierarchy)
         {
-            if (gameObject.activeInHierarchy && !enemies[count].gameObject.activeInHierarchy)
-            {
-                EnemySpawnRef(enemies[count]);
-            }
-            count++;
+            EnemySpawnRef(enemies[count]);
         }
-        else
-        {
-            count = 0;
-        }
+        count++;
+        count = count%enemyCount;
     }
 
     public void EnemySpawnRef(Enemy enemy)
     {
         enemy.isProvoked = true;
+        int enemyPosIndex = Random.Range(0, spawnPos.Length);
+        enemy.transform.position = transform.position + spawnPos[enemyPosIndex];
         enemy.gameObject.SetActive(true);
     }
 
@@ -196,8 +194,8 @@ public class EnemySpawner : MonoBehaviour
                 for(int i=0;i<enemies.Count;i++)
                 {
                     if(!enemies[i].dead && enemies[i].gameObject.activeInHierarchy)
-                    {
-                        enemies[i].transform.parent = transform.parent.parent;
+                    {   
+                        enemies[i].level = enemyGetter.level;
                         remainingZombiesCount++;
                     }
                 }

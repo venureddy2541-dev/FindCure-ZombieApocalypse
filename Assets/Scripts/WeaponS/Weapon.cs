@@ -3,19 +3,24 @@ using System.Collections;
 using TMPro;
 using Unity.Cinemachine;
 using System.Collections.Generic;
+using StarterAssets;
 
 public class WeaponType : MonoBehaviour
 {
+    PlayerManager playerManager;
+    RecoilManager recoilManager;
+
+    public SensyType sensyType;
+    public Transform AdsPoint;
+    public AnimatorOverrideController overrideController;
     [SerializeField] WeaponAudioClipsSB weaponAudioClipsSB;
-    public Animator animator;
-    public ParticleSystem mazilFlash; 
+    [SerializeField] private Animator animator;
+    public ParticleSystem mazilFlash;
     public LayerMask playerHitLayers;
 
     [Header("Cinemachine Components")]
-    public CinemachineImpulseSource weaponShake;
     public CinemachineCamera playerCamera;
 
-    public GameObject scopeZoomImage;
     public int magSize;
     public int storageSize;
     public WeaponData weaponData;
@@ -24,16 +29,16 @@ public class WeaponType : MonoBehaviour
     public AudioSource gunAudioSource;
 
     [Header("AmmoTexts")]
-    public TMP_Text magText;
+    [SerializeField] private TMP_Text magText;
+    public TMP_Text MagText { get { return magText; } }
 
     int damage;
     float time;
     int granadeCount;
     int temp;
-    float impulseRate;
     int originalZooom = 40;
 
-    public bool reloading = true;
+    public bool reloading = false;
 
     //Tougles between weapons and granade
     public bool weaponState = true;
@@ -47,47 +52,55 @@ public class WeaponType : MonoBehaviour
     RaycastHit hit;
     Ray ray;
 
+    float spreadValue;
+
+    void OnEnable()
+    {
+        shootRate = true;
+    }
+
+    void OnDisable()
+    {
+        if(animator) animator.ResetTrigger("Reload");
+    }
+
     protected virtual void Start()
     {
-        impulseRate = weaponData.offScopeImpulseVal;
+        spreadValue = weaponData.bulletSpread;
         magSize = weaponData.magSize;
         UpdateWeaponData();
     }
 
     public virtual void UpdateWeaponData()
     {
-        magText.text = magSize.ToString()+"/"+storageSize.ToString();
+        if(magText) magText.text = magSize.ToString()+"/"+storageSize.ToString();
         gunAudioSource.Stop();
         gunAudioSource.clip = weaponData.weaponSound;
     }
 
-    public virtual bool Zoom(bool zoomState)
+    public virtual bool CanZoom()
     {
-        scopeZoomImage.SetActive(zoomState);
-        ZoomInAndOut(zoomState);
-        return !zoomState;
+        if(!playerCamera) return false;
+        return true;
     }
 
-    public void ZoomInAndOut(bool zoomState)
+    public virtual bool Zoom(bool zoomState)
+    {
+        ZoomInAndOut(zoomState);
+        return zoomState;
+    }
+
+    void ZoomInAndOut(bool zoomState)
     {
         if(zoomState)
         {
-            impulseRate = weaponData.onScopeImpulseVal;
+            spreadValue = weaponData.onScopeBulletSpread;
             playerCamera.Lens.FieldOfView = weaponData.weaponZoom;
         }
         else
         {
-            impulseRate = weaponData.offScopeImpulseVal;
+            spreadValue = weaponData.bulletSpread;
             playerCamera.Lens.FieldOfView = originalZooom;
-        }
-    }
-
-    public virtual void Fire(bool fired)
-    {
-        this.fired = fired;
-        if (fired && !reloaded && shootRate)
-        {
-            OnFire();
         }
     }
 
@@ -95,7 +108,17 @@ public class WeaponType : MonoBehaviour
     {
         if(magSize == 0 && storageSize > 0)
         {
-            ToggleWeaponReload(true);
+            if(ToggleWeaponReload(true)) playerManager.DisableScope();
+        }
+    }
+    
+    public virtual void Fire(bool fired)
+    {
+        this.fired = fired;
+        if (fired && !reloaded && shootRate)
+        {
+            OnFire();
+            StartCoroutine("FireRate");
         }
     }
 
@@ -104,14 +127,15 @@ public class WeaponType : MonoBehaviour
         if (magSize > 0)
         { 
             magSize--;
-            magText.text = magSize.ToString() + "/" + storageSize.ToString();
+            if(magText) magText.text = magSize.ToString() + "/" + storageSize.ToString();
 
             shootRate = false;
-            WeaponShake();
 
             WeaponAnimation();
 
             WeaponSound();
+
+            WeaponRecoil();
 
             MazilFlash();
 
@@ -130,42 +154,68 @@ public class WeaponType : MonoBehaviour
 
         if(magSize == 0 && storageSize == 0)
         {
-            MessageBox.messageBox.PressentMessage("OUT OF AMMO", null);
+            if(MessageBox.messageBox) MessageBox.messageBox.PressentMessage("OUT OF AMMO", null);
         }
     }
 
-    public virtual void ToggleWeaponReload(bool canReload)
+    protected virtual void WeaponAnimation()
+    {
+        //Override this for weapon Fire animations
+        animator.CrossFadeInFixedTime("Fire",0.05f,0,0f);
+    }
+
+    protected virtual void WeaponSound()
+    {
+        gunAudioSource.Play(); 
+    }
+
+    void MazilFlash()
+    {
+        mazilFlash.Play();
+    }
+
+    void WeaponRecoil()
+    {
+        recoilManager.TriggerRecoil();
+    }
+
+    IEnumerator FireRate()
+    {
+        yield return new WaitForSeconds(weaponData.fireRate);
+        shootRate = true;
+    }
+
+    public virtual bool ToggleWeaponReload(bool canReload)
     {
         if(canReload)
         {
-            GunReload();
+            if (weaponData.magSize == magSize) return false;
+            if (storageSize > 0)
+            {
+                GunReload();
+                return true;
+            }
+
+            if(MessageBox.messageBox) MessageBox.messageBox.PressentMessage("OUT OF AMMO", null);
+            return false;
         }
-        else
-        {
-            gunAudioSource.Stop();
-            StopCoroutine(ReloadTime());
-            reloading = true;
-            reloaded = false;
-        }
+
+        gunAudioSource.Stop();
+        StopCoroutine(ReloadTime());
+        playerManager.ResetBlockedConstraints();
+        reloading = false;
+        reloaded = false;
+        return false;
     }
 
     void GunReload()
     {
-        if (weaponData.magSize == magSize) return;
-
-        if (reloading)
+        if (!reloading)
         {
-            reloading = false;
-            if (storageSize > 0)
-            {
-                reloaded = true;
-                StartCoroutine(ReloadTime());
-            }
-            else
-            {
-                reloading = true;
-                MessageBox.messageBox.PressentMessage("OUT OF AMMO", null);
-            }
+            reloading = true;
+            reloaded = true;
+            animator.SetTrigger("Reload");
+            StartCoroutine(ReloadTime());
         }
     }
 
@@ -197,28 +247,9 @@ public class WeaponType : MonoBehaviour
 
         gunAudioSource.Stop();
         gunAudioSource.clip = weaponData.weaponSound;
-        reloading = true;
+        reloading = false;
         reloaded = false;
-    }
-
-    protected virtual void WeaponShake()
-    {
-        weaponShake.GenerateImpulse(new Vector3(0, 0, 1f) * impulseRate);
-    }
-
-    protected virtual void WeaponAnimation()
-    {
-        animator.SetTrigger("Shooting");
-    }
-
-    protected virtual void WeaponSound()
-    {
-        gunAudioSource.Play();
-    }
-
-    void MazilFlash()
-    {
-        mazilFlash.Play();
+        playerManager.ResetBlockedConstraints();
     }
 
     void ShootRay()
@@ -226,21 +257,29 @@ public class WeaponType : MonoBehaviour
         InitiateShoot(Camera.main.transform.position,Camera.main.transform.forward);
     }
 
-    protected virtual void InitiateShoot(Vector3 startPos,Vector3 endPos)
+    protected virtual void InitiateShoot(Vector3 startPos,Vector3 direction)
     {
-        FireBullet(startPos,endPos);
+        FireBullet(startPos,direction);
         HitObject();
     }
 
-    void FireBullet(Vector3 startPos,Vector3 endPos)
+    void FireBullet(Vector3 startPos,Vector3 direction)
     {
-        ray = new Ray(startPos,endPos);
-        Physics.Raycast(ray, out hit, Mathf.Infinity, playerHitLayers, QueryTriggerInteraction.Ignore);
+        ray = new Ray(startPos,direction + RandomSpreadValue());
+        Physics.Raycast(ray, out hit, weaponData.range, playerHitLayers, QueryTriggerInteraction.Ignore);
+    }
+
+    Vector3 RandomSpreadValue()
+    {
+        float upSplit = Random.Range(-spreadValue,spreadValue);
+        float leftSplit = Random.Range(-spreadValue,spreadValue);
+        Vector3 splitDirc = transform.right*upSplit + transform.up*leftSplit;
+        return splitDirc;
     }
 
     void HitObject()
     {
-        if (hit.collider)
+        if (hit.collider && RequiredParticles.instance)
         {
             if (hit.collider.CompareTag("Enemy"))
             {
@@ -354,5 +393,24 @@ public class WeaponType : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void AssiginComponenets(PlayerManager playerManager,RecoilManager recoilManager)
+    {
+        this.playerManager = playerManager;
+        this.recoilManager = recoilManager;
+    }
+
+    public void AssiginPickUpWeaponComponenets(PlayerManager playerManager,
+                                                RecoilManager recoilManager,
+                                                Animator animator,
+                                                TMP_Text magText,
+                                                AudioSource gunAudioSource)
+    {
+        this.playerManager = playerManager;
+        this.recoilManager = recoilManager;
+        this.animator = animator;
+        this.magText = magText;
+        this.gunAudioSource = gunAudioSource;
     }
 }

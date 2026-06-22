@@ -8,7 +8,7 @@ public class ScreenOnButton : MonoBehaviour
     [SerializeField] GameObject screen;
     [SerializeField] CinemachineCamera screenCam;
     [SerializeField] GameObject player;
-    PlayerInput playerIS;
+    [SerializeField] PlayerInput playerIS;
     WeaponHandle weaponHandle;
 
     void Awake()

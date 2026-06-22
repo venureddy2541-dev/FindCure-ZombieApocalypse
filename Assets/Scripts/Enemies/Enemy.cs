@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
+    public Waves level;
     bool inAttackRange = false;
     public ZombieData zombieData;
     int health;
@@ -30,7 +31,6 @@ public class Enemy : MonoBehaviour
     
     AudioSource zombieSounds;
 
-    public Vector3 startPos;
     public Slider slider;
     public Animator enemyAnimator;
     
@@ -51,7 +51,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] GameObject spawner;
     
     [SerializeField] AudioClip screamingSound;
-    [SerializeField] ZombieInvicible[] zombieInvicibleArray;
+    [SerializeField] ZombieInvicible zombieInvicible;
 
     public Vector3 latestHitDir;
     public float latestHitForce;
@@ -62,12 +62,14 @@ public class Enemy : MonoBehaviour
     Collider[] cols;
     Collider col;
     Rigidbody rb;
+    EnemyAttack enemyAttack;
  
     protected virtual void Awake()
     {
         col = GetComponent<Collider>();
         rb = GetComponent<Rigidbody>();
         damageManager = GetComponentInChildren<DamageManager>();
+        enemyAttack = GetComponentInChildren<EnemyAttack>();
 
         slider.gameObject.SetActive(false);
         zombieSounds = GetComponent<AudioSource>();
@@ -99,17 +101,17 @@ public class Enemy : MonoBehaviour
     {
         AudioActivator();
         isActive = true;
-        startPos = transform.position;
-        isPlayerAlive = player.GetComponent<IsAlive>();
-        isPlayerMountedAlive = playerMountedObject.GetComponent<IsAlive>();
-        cols = playerMountedObject.GetComponents<Collider>();
-        damageManager.ChangeTarget(playerMountedObject);
-
         enemyAnimator = GetComponentInChildren<Animator>();
+        if(player != null)
+        {
+            AssiginPlayerData(player,playerMountedObject);
+        }
     }
 
     protected virtual void Update()
     {
+        if(isPlayerAlive == null || isPlayerMountedAlive == null) return;
+
         if(!dead && isPlayerMountedAlive.alive && isPlayerAlive.alive)
         {
             FindInRangeOrNot();
@@ -130,6 +132,16 @@ public class Enemy : MonoBehaviour
 
         Provoked();
         RandomWalk();
+    }
+
+    public void AssiginPlayerData(GameObject playerRef,GameObject playerMountedObjectRef)
+    {
+        player = playerRef;
+        playerMountedObject = playerMountedObjectRef;
+        isPlayerAlive = (playerRef)? playerRef.GetComponent<IsAlive>() : null;
+        isPlayerMountedAlive = (playerMountedObjectRef)? playerMountedObjectRef.GetComponent<IsAlive>() : null;
+        cols = playerMountedObjectRef.GetComponents<Collider>();
+        damageManager.ChangeTarget(playerMountedObjectRef);
     }
 
     void FindInRangeOrNot()
@@ -227,14 +239,14 @@ public class Enemy : MonoBehaviour
 
     void EnemyProvoked()
     {
-        if(exactDistance > stopValueRef + StarterAssetsInputs.starterAssetsInputs.additionalDist || enemyDitected)
+        if(exactDistance > stopValueRef || enemyDitected)
         {
             enemyDitected = false;
             EnemyAudio();
             Behaviour();
         }
 
-        if(exactDistance <= stopValueRef + StarterAssetsInputs.starterAssetsInputs.additionalDist)
+        if(exactDistance <= stopValueRef)
         {
             EnemyAudio();
             AttackRange();
@@ -269,7 +281,7 @@ public class Enemy : MonoBehaviour
         navMesh.speed = Speed;
         navMesh.angularSpeed = angularSpeed;
         navMesh.SetDestination(playerMountedObject.transform.position);
-        float offset = StarterAssetsInputs.starterAssetsInputs.additionalDist;
+        float offset = 0f;//StarterAssetsInputs.starterAssetsInputs.additionalDist;
 
         if(exactDistance < stopValueRef + 0.3f + offset && exactDistance > stopValueRef + offset)
         {
@@ -355,17 +367,15 @@ public class Enemy : MonoBehaviour
             {
                 dead = true;
                 if(!reBirth) { GameManager.gameManager.UpdateCash(zombieData.points); }
-                ZombieDeadState();
+                zombieSounds.Stop();
 
                 col.isTrigger = true;
-                
+                navMesh.enabled = false;
                 slider.gameObject.SetActive(false);
-                Waves wave = transform.parent.parent.GetComponent<Waves>();
-                if(wave)
-                {
-                    wave.Counting();
-                }
-                GetComponentInChildren<EnemyAttack>().RegdolActivation();
+                    
+                if(level) level.Counting();
+                
+                enemyAttack.RegdolActivation();
             }
             else if(health >= 10 && health <= 20)
             {
@@ -380,7 +390,6 @@ public class Enemy : MonoBehaviour
         {
             TakeDamage(damage,hitDirection,hitForce);
             zombieSounds.PlayOneShot(enemyHitByVehicalSound);
-            navMesh.enabled = false;
         }
     }
 
@@ -388,7 +397,7 @@ public class Enemy : MonoBehaviour
     {
         if(!enemyAnimator.GetBool("crawl"))
         {
-            stopValueRef = stopValueRef - 0.8f;
+            stopValueRef = stopValueRef/2f;
             enemyAnimator.SetBool("crawl",true);
         }
     }
@@ -400,40 +409,31 @@ public class Enemy : MonoBehaviour
         slider.gameObject.SetActive(false);
     }
 
-    public void ZombieDeadState()
-    {
-        zombieSounds.Stop();
-    }
-
     public void EnemyDeactiveState()
     {
-        foreach(ZombieInvicible zombieInvicible in zombieInvicibleArray)
-        {
-            zombieInvicible.OpaqueToTransparent();
-        }
+        zombieInvicible.OpaqueToTransparent();
+    }
+
+    public void ForceReset()
+    {
+        zombieInvicible.ForceReset();
     }
 
     public void ResetEverything()
     {
-        if (reBirth)
-        {
-            dead = false;
-            enemyDitected = false;
-            isProvoked = false;
-            
-            col.isTrigger = false;
-            navMesh.enabled = true;
+        dead = false;
+        enemyDitected = false;
+        isProvoked = false;
+        
+        col.isTrigger = false;
+        navMesh.enabled = true;
 
-            navMesh.speed = Speed;
-            navMesh.angularSpeed = angularSpeed;
-            transform.position = startPos;
-            slider.value = zombieData.health;
-            health = zombieData.health; 
-            foreach(ZombieInvicible zombieInvicible in zombieInvicibleArray)
-            {
-                zombieInvicible.TransparentToOpaque();
-            }
-        }
+        navMesh.speed = Speed;
+        navMesh.angularSpeed = angularSpeed;
+        slider.value = zombieData.health;
+        health = zombieData.health; 
+
+        zombieInvicible.TransparentToOpaque();
     }
 
     public void ChasePlayer()

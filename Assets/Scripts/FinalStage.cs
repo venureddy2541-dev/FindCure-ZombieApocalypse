@@ -25,7 +25,7 @@ public class FinalStage : MonoBehaviour
         }
     }
 
-    public void NormalRobotsDeadCount()
+    public void RobotsDeadCount()
     {
         count--;
         if(count == 4)

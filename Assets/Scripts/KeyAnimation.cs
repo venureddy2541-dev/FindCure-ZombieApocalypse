@@ -4,6 +4,8 @@ using TMPro;
 
 public class KeyAnimation : MonoBehaviour
 {
+    [SerializeField] Transform handPivote;
+    [SerializeField] Transform display;
     PlayableDirector pd;
     [SerializeField] FinalStagePasswordChecker finalStagePasswordChecker;
     TMP_Text passCode;
@@ -72,5 +74,12 @@ public class KeyAnimation : MonoBehaviour
         playerManager.ToggleShootingOrThrowing(FireStateEnum.CanFire);
         playerManager.gameObject.SetActive(true);
         gameObject.SetActive(false);
+    }
+
+    public void AssiginKeyToHand()
+    {
+        display.SetParent(handPivote);
+        display.localPosition = Vector3.zero;
+        display.localRotation = Quaternion.identity;
     }
 }

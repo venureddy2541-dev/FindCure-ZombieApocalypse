@@ -44,6 +44,7 @@ public class CarWeapon : MonoBehaviour
     Rigidbody fireBallRb;
     Collider fireBallCol;
     [SerializeField] Canvas canvas;
+    [SerializeField] float fireRange;
 
 
     void Start()
@@ -117,7 +118,7 @@ public class CarWeapon : MonoBehaviour
 
                 RaycastHit hit1;
                 Ray ray = new Ray(shootPos.position, shootPos.forward);
-                if (Physics.Raycast(ray,out hit1,Mathf.Infinity,layers))
+                if (Physics.Raycast(ray,out hit1,fireRange,layers))
                 {
                     if (fireRate)
                     {

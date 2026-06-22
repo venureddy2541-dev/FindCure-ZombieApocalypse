@@ -14,6 +14,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] AudioMixerSnapshot mute;
     [SerializeField] AudioMixerSnapshot normal;
     [SerializeField] GameObject audioMB;
+    [SerializeField] GameObject sensyMB;
 
     [SerializeField] MusicPlayer musicPlayer;
     public MusicPlayer musicPlayerRef { get { return musicPlayer; }}
@@ -76,8 +77,9 @@ public class AudioManager : MonoBehaviour
         normal.TransitionTo(0.5f);
     }
 
-    public void AudioManagerButtons(bool activate)
+    public void AllSliderButtons(bool state)
     {
-        audioMB.SetActive(activate);
+        sensyMB.SetActive(state);
+        audioMB.SetActive(state);
     }
 }

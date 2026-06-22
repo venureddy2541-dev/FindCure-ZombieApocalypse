@@ -8,6 +8,7 @@ public class PasswordChecker : MonoBehaviour
     [SerializeField] int index;
     [SerializeField] GameObject door;
     [SerializeField] Waves waves;
+    [SerializeField] EnemyGetter enemyGetter;
     [SerializeField] GameObject nextStage;
 
     [SerializeField] AudioSource doorAudios;
@@ -74,6 +75,8 @@ public class PasswordChecker : MonoBehaviour
         doorAudios.Play();
         door.GetComponent<PlayableDirector>().Play();
         nextStage.SetActive(true);
+        ZombiesManager.zombiesManager.ResetActiveZombies();
+        if(enemyGetter) { enemyGetter.GetEnemies(); }
     } 
 
     public void Cancle()

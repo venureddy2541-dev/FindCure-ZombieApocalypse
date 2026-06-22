@@ -37,7 +37,7 @@ public class FlameThrowerBullets : MonoBehaviour
 
             SetParticlePos(gb.transform);
 
-            gb.GetComponent<WalkingRobots>().TakeDamage(count*damage);
+            gb.GetComponentInParent<WalkingRobots>().TakeDamage(count*damage);
         }
 
         if(gb.CompareTag("Enemy"))

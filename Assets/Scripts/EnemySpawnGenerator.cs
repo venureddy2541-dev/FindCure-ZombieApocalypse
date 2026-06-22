@@ -11,7 +11,8 @@ public class EnemySpawnGenerator : MonoBehaviour
     
     void Awake()
     {
-        musicPlayer = GameObject.FindWithTag("MusicPlayer").GetComponent<MusicPlayer>();
+        GameObject gb = GameObject.FindWithTag("MusicPlayer");
+        if(gb) gb.TryGetComponent(out musicPlayer);
         for(int i = 0;i<spawnersBase.Length;i++)
         {
             spawnersBase[i].SetActive(false);

@@ -31,6 +31,7 @@ public class ScreenControler : MonoBehaviour
     {
         if(GameManager.gameManager.GamePause) { return; }
         
+        Debug.Log("Triggered");
         audioSource.Play();
         screenCam.Priority = 0;
         playerIS.enabled = true;

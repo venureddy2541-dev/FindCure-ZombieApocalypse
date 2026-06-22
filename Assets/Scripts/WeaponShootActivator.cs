@@ -14,7 +14,7 @@ public class WeaponShootActivator : MonoBehaviour
     [SerializeField] float leftForce = 5;
     int order = 0;
 
-    void Awake()
+    /*void Awake()
     {
         shellsPool = new Queue<GameObject>(poolSize);
         shellsRbPool = new Queue<Rigidbody>(poolSize);
@@ -37,10 +37,15 @@ public class WeaponShootActivator : MonoBehaviour
 
         currentShell.SetActive(true);
         rb.AddForce((transform.up*upForce) + (transform.right*-leftForce),ForceMode.VelocityChange);
-    }
+    }*/
 
-    public void WeaponShootActi()
+    void WeaponShootActi()
     {
         weaponType.shootRate = true;
+    }
+
+    public void AssiginWeapon(WeaponType weapon)
+    {
+        weaponType = weapon;
     }
 }

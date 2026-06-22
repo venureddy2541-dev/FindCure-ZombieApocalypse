@@ -8,6 +8,7 @@ public class AutoGun : WeaponType
         this.fired = fired;
         if (!reloaded && fired)
         {
+            StopCoroutine("Firing");
             StartCoroutine("Firing");
         }
     }
@@ -19,25 +20,6 @@ public class AutoGun : WeaponType
             base.OnFire();
             yield return new WaitForSeconds(weaponData.fireRate);
             shootRate = true;
-        }
-
-        if(!fired) 
-        { 
-            if(gunAudioSource.loop) 
-            { 
-                gunAudioSource.loop = false;
-                gunAudioSource.Stop();
-            } 
-        }
-    }
-
-    protected override void WeaponSound()
-    {
-        if (!gunAudioSource.isPlaying)
-        {
-            gunAudioSource.loop = true;
-            gunAudioSource.clip = weaponData.weaponSound;
-            gunAudioSource.Play();
         }
     }
 }

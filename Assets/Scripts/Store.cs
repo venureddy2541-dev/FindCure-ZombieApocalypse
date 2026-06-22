@@ -13,9 +13,13 @@ public class Store : MonoBehaviour
     int requiredCurrencyForH = 70;
     int requiredCurrencyForG = 50;
     AudioSource audioSource;
+    PlayerManager playerManager;
+    PlayerHealth playerHealth;
 
     void Awake()
     {
+        playerHealth = GameObject.FindWithTag("Player").GetComponent<PlayerHealth>();
+        playerManager = GameObject.FindWithTag("Player").GetComponent<PlayerManager>();
         audioSource = GameManager.gameManager.GetComponent<AudioSource>();
     }
 
@@ -33,7 +37,7 @@ public class Store : MonoBehaviour
             GameManager.gameManager.UpdateCash(-requiredCurrencyForH);
             healthKitCount--;
             healthKitCountText.text = healthKitCount.ToString();
-            PlayerHealth playerHealth = GameObject.FindWithTag("Player").GetComponent<PlayerHealth>();
+            
             if(playerHealth != null)
             {
                 playerHealth.UpdateHealthText(1);
@@ -53,7 +57,6 @@ public class Store : MonoBehaviour
             GameManager.gameManager.UpdateCash(-requiredCurrencyForG);
             granadeCount--;
             granadeCountText.text = granadeCount.ToString();
-            PlayerManager playerManager = GameObject.FindWithTag("Player").GetComponent<PlayerManager>();
             if(playerManager != null)
             {
                 playerManager.UpdateGranadeText(1);
@@ -62,24 +65,6 @@ public class Store : MonoBehaviour
                     GameManager.gameManager.UpdateInventoryBetweenLevels(0,1,requiredCurrencyForG);
                 }
             }
-        }
-    }
-
-    void OnTriggerStay(Collider other)
-    {
-        if(other.CompareTag("Player"))
-        {
-            Cursor.lockState = CursorLockMode.None;
-            other.gameObject.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CantFire);
-        }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if(other.CompareTag("Player"))
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            other.gameObject.GetComponent<PlayerManager>().ToggleShootingOrThrowing(FireStateEnum.CanFire);
         }
     }
 }

@@ -7,7 +7,6 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.InputSystem;
 using TMPro;
 using UnityEngine.UI;
-using StarterAssets;
 using System.Linq;
 using System;
 
@@ -36,7 +35,7 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] Car car;
     PlayerManager playerManager;
     WeaponHandle weaponHandle;
-    StarterAssetsInputs starterAssetsInputs;
+    Inputs inputs;
 
     [SerializeField] AudioClip playerDeadAudio;
     [SerializeField] AudioClip playerBreathAudio;
@@ -46,7 +45,6 @@ public class PlayerHealth : MonoBehaviour
     public int health;
     public int maxHealth;
 
-    [SerializeField] GameObject playerBody;
     int healthKitCount;
     float zombieStopDistance = 1f;
     public bool lowHealth = false;
@@ -67,10 +65,17 @@ public class PlayerHealth : MonoBehaviour
 
     bool mountedMode = false;
 
+    [Header("OnDeadComponenets")]
+    [SerializeField] GameObject skeliton;
+    [SerializeField] GameObject fullBody;
+    [SerializeField] GameObject fpsHands;
+    [SerializeField] Rigidbody[] rigidBodies;
+    [SerializeField] Animator animator;
+
     void Awake()
     {
-        crossHairRectTrans = crossHair.GetComponent<RectTransform>();
-        crossHairOrgPos = crossHairRectTrans.anchoredPosition;
+        crossHairRectTrans = (crossHair)?crossHair.GetComponent<RectTransform>() : null;
+        crossHairOrgPos = (crossHairRectTrans)? crossHairRectTrans.anchoredPosition : Vector2.zero;
 
         playerManager = GetComponent<PlayerManager>();
         playerDeathText = GameObject.FindWithTag("DeadMenu");
@@ -79,9 +84,12 @@ public class PlayerHealth : MonoBehaviour
         healthKitCount = playerData.healthKitCount;
         maxHealth = playerData.health;
         health = playerData.health;
-        healthText.text = health.ToString();
-        slider.maxValue = health;
-        slider.value = health;
+        if(healthText) healthText.text = health.ToString();
+        if(slider)
+        {
+            slider.maxValue = health;
+            slider.value = health;
+        }
     }
 
     void OnDisable()
@@ -93,10 +101,10 @@ public class PlayerHealth : MonoBehaviour
     {
         UpdateHealthText(healthKitCount); 
         
-        if(volume.profile.TryGet(out vignette))
+        if(volume) if(volume.profile.TryGet(out vignette))
 
         weaponHandle = GetComponent<WeaponHandle>();
-        starterAssetsInputs = GetComponent<StarterAssetsInputs>();
+        inputs = GetComponent<Inputs>();
     }
     
     void OnInvisibile(InputValue value)
@@ -201,8 +209,12 @@ public class PlayerHealth : MonoBehaviour
         GameManager.gameManager.DeadMenu();
         deathCam.transform.parent = null;
         deathCam.Priority = 20;
-        playerBody.transform.parent = null;
-        playerBody.SetActive(true);
+
+        skeliton.transform.parent = null;
+        fullBody.SetActive(true);
+        fpsHands.SetActive(false);
+        animator.enabled = false;
+        foreach(Rigidbody rb in rigidBodies) rb.isKinematic = false;
         
         ThrowWeapons();
         
@@ -236,16 +248,14 @@ public class PlayerHealth : MonoBehaviour
         {
             requiredAudios.clip = playerBreathAudio;
             requiredAudios.Play();
-            StartCoroutine("Blinking");
-            playerManager.canZoom = false;
-            playerManager.SetWeaponScrolling(currentState);
-            playerManager.SetScope(!currentState); 
+            if(gameObject.activeSelf) StartCoroutine("Blinking");
+            playerManager.DisableScope();
         }
         else
         {
             requiredAudios.clip = null;
             StopCoroutine("Blinking");
-            playerManager.canZoom = true;
+            playerManager.CanZoom = true;
         }
     }
 
@@ -289,7 +299,7 @@ public class PlayerHealth : MonoBehaviour
     public void UpdateHealthText(int healthKitCountRef)
     {
         healthKitCount += healthKitCountRef;
-        healthKitText.text = "COUNT : "+ healthKitCount;
+        if(healthKitText) healthKitText.text = "COUNT : "+ healthKitCount;
     }
 
     public int HealthKitCount

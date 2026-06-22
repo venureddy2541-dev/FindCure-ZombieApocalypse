@@ -1,10 +1,12 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class FlameThrowerAssignier : MonoBehaviour
 {
+    [SerializeField] Vector3 spawnPos;
     [SerializeField] float weaponEndPoint = 1.5f;
-    [SerializeField] Material mainMat;
-    [SerializeField] Material transperantMat;
+    [SerializeField] List<Material> mainMat;
+    [SerializeField] List<Material> transperantMat;
     [SerializeField] GameObject flameThrower;
     WeaponHandle weaponHandle;
     GameObject pauseManager;
@@ -31,7 +33,7 @@ public class FlameThrowerAssignier : MonoBehaviour
     public void WeaponAssigner()
     {
         weaponHandle = GameObject.FindWithTag("Player").GetComponent<WeaponHandle>();
-        weaponHandle.NewWeaponAssignier(flameThrower,mainMat,transperantMat,weaponEndPoint);
+        weaponHandle.NewWeaponAssignier(flameThrower,mainMat,transperantMat,weaponEndPoint,spawnPos);
         transform.GetChild(0).gameObject.SetActive(false);
     }
 }

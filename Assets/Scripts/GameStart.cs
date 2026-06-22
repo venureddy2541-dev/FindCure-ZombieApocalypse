@@ -9,7 +9,6 @@ public class GameStart : MonoBehaviour
 {
     [SerializeField] SceneLoader sceneLoader;
     [SerializeField] GameObject menu;
-    [SerializeField] GameObject audioMB;
     [SerializeField] EnemySpawner enemySpawner1;
     [SerializeField] EnemySpawner enemySpawner2;
     [SerializeField] Enemy skinLessZombie;
@@ -27,16 +26,17 @@ public class GameStart : MonoBehaviour
     {
         modeIndicatorText.text = "default(EASY)";
         audioSource = GetComponent<AudioSource>();
-        Health(15000,5000,50,100,150,200,500,50,50);
+        Health(15000,5000,50,100,150,200,500,25,20);
     }
 
-    public void start()
+    public void StartGame()
     {
         menu.SetActive(false);
-        audioMB.SetActive(false);
+        AudioManager.audioManager.AllSliderButtons(false);
         videoPlayer.Stop();
         Cursor.lockState = CursorLockMode.Locked;
         PressAudio();
+        sceneLoader.DisableLobbyUI();
         sceneLoader.SceneLoadManager(SceneManager.GetActiveScene().buildIndex + 1,false);
     }
 
@@ -50,21 +50,21 @@ public class GameStart : MonoBehaviour
     {
         modeIndicatorText.text = "EASY";
         PressAudio();
-        Health(15000,5000,50,100,150,200,500,50,50);
+        Health(15000,5000,50,100,150,200,500,25,20);
     }
 
     public void medium()
     {
         modeIndicatorText.text = "MEDIUM";
         PressAudio();
-        Health(30000,10000,100,150,200,250,1000,100,100);
+        Health(30000,10000,100,150,200,250,1000,50,45);
     }
 
     public void hard()
     {
         modeIndicatorText.text = "HARD";
         PressAudio();
-        Health(45000,15000,150,200,250,300,1500,150,150);
+        Health(45000,15000,150,200,250,300,1500,125,100);
     }
 
     void PressAudio()
@@ -90,7 +90,7 @@ public class GameStart : MonoBehaviour
     public void ActivateButtons()
     {
         menu.SetActive(true);
-        audioMB.SetActive(true);
+        AudioManager.audioManager.AllSliderButtons(true);
         videoPlayer.Play();
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;

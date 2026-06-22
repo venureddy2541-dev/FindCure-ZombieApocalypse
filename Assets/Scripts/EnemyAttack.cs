@@ -42,33 +42,30 @@ public class EnemyAttack : MonoBehaviour
 
     public void ResetEverything()
     {
-        if(enemy.reBirth)
+        isAlive = true;
+
+        /*foreach(Collider col in colliders)
         {
-            isAlive = true;
-
-            /*foreach(Collider col in colliders)
-            {
-                col.enabled = false;
-            }
-
-            foreach(Rigidbody newRb in rb)
-            {
-                newRb.linearVelocity = Vector3.zero;
-                newRb.angularVelocity = Vector3.zero;
-            }
-
-            foreach(Collider col in colliders)
-            {
-                col.enabled = true;
-            }*/
-
-            gameObject.GetComponent<Animator>().enabled = true;
-            foreach(Rigidbody newRb in rb)
-            {
-                newRb.isKinematic = true;
-            }
-            transform.localRotation = Quaternion.identity;
+            col.enabled = false;
         }
+
+        foreach(Rigidbody newRb in rb)
+        {
+            newRb.linearVelocity = Vector3.zero;
+            newRb.angularVelocity = Vector3.zero;
+        }
+
+        foreach(Collider col in colliders)
+        {
+            col.enabled = true;
+        }*/
+
+        gameObject.GetComponent<Animator>().enabled = true;
+        foreach(Rigidbody newRb in rb)
+        {
+            newRb.isKinematic = true;
+        }
+        transform.localRotation = Quaternion.identity;
     }
 
     public void IsAttackComplete()

@@ -3,9 +3,11 @@ using System.Collections;
 
 public class FlameThrower : WeaponType
 {
-    public override bool Zoom(bool zoomState)
+    [SerializeField] ParticleSystem fire;
+
+    public override bool CanZoom()
     {
-        return true;
+        return false;
     }
 
     public override void Fire(bool fired)
@@ -30,9 +32,11 @@ public class FlameThrower : WeaponType
         {
             if(gunAudioSource.loop)
             {
-                var emission = mazilFlash.emission;
+                var emission = fire.emission;
                 emission.enabled = fired;
                 gunAudioSource.loop = false;
+                var mazilemission = mazilFlash.emission;
+                mazilemission.enabled = false;
                 gunAudioSource.Stop();
             }
         }
@@ -44,15 +48,22 @@ public class FlameThrower : WeaponType
         {
             shootRate = false;
             magSize--;
-            magText.text = magSize.ToString() + "/" + storageSize.ToString();
+            MagText.text = magSize.ToString() + "/" + storageSize.ToString();
 
             if (!gunAudioSource.isPlaying)
             {
                 gunAudioSource.loop = true;
                 gunAudioSource.clip = weaponData.weaponSound;
                 gunAudioSource.Play();
+                var fireEmission = fire.emission;
+                fireEmission.enabled = fired;
                 var emission = mazilFlash.emission;
                 emission.enabled = fired;
+            }
+            else
+            {
+                var emission = mazilFlash.emission;
+                emission.enabled = false;
             }
 
             if (magSize == 0)

@@ -3,6 +3,8 @@ using UnityEngine.AI;
 
 public class RoboBomb : MonoBehaviour
 {
+
+    public bool reBirth;
     AudioSource audioSource;
     [SerializeField] int points;
     public GameObject player;
@@ -24,6 +26,8 @@ public class RoboBomb : MonoBehaviour
     PlayerHealth playerHealth;
     IsAlive isAlive;
 
+    public FinalStage manager;
+
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
@@ -40,6 +44,7 @@ public class RoboBomb : MonoBehaviour
         healthRef = health;
         startPosition = transform.position;
         startRotation = transform.rotation;
+
         anim = GetComponent<Animator>();
         navMesh = GetComponent<NavMeshAgent>();
         Speed = navMesh.speed;
@@ -56,15 +61,7 @@ public class RoboBomb : MonoBehaviour
         float dist = Vector3.Distance(transform.position,player.transform.position);
         if(dist > chaseDist)
         {
-            if(!audioSource.isPlaying)
-            {
-                audioSource.Play();
-            }
-            navMesh.speed = Speed;
-            navMesh.SetDestination(player.transform.position);
-            Vector3 rotatePos = (player.transform.position - transform.position);
-            Quaternion finalRotation = Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(rotatePos),Time.deltaTime*rotateSpeed);
-            transform.rotation = finalRotation;
+            Chase();
         }
         else
         {
@@ -73,8 +70,23 @@ public class RoboBomb : MonoBehaviour
         }
     }
 
+    void Chase()
+    {
+        if(!audioSource.isPlaying)
+        {
+            audioSource.Play();
+        }
+        navMesh.speed = Speed;
+        navMesh.SetDestination(player.transform.position);
+        Vector3 rotatePos = (player.transform.position - transform.position);
+        Quaternion finalRotation = Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(rotatePos),Time.deltaTime*rotateSpeed);
+        transform.rotation = finalRotation;
+    }
+
     void Blast()
     {
+        if(!reBirth) { if(manager != null) { manager.RobotsDeadCount(); } }
+
         Collider[] collsInRange = Physics.OverlapSphere(transform.position,radius);
         foreach(Collider col in collsInRange)
         {
@@ -94,9 +106,13 @@ public class RoboBomb : MonoBehaviour
         curretParticle.Play();
 
         gameObject.SetActive(false);
-        transform.position = startPosition;
-        transform.rotation = startRotation;
-        health = healthRef;
+
+        if(reBirth)
+        {
+            transform.position = startPosition;
+            transform.rotation = startRotation;
+            health = healthRef;
+        }
     }
 
     public void TakeDamage(int damage)
@@ -107,6 +123,12 @@ public class RoboBomb : MonoBehaviour
             GameManager.gameManager.UpdateCash(points);
             Blast();
         }
+    }
+
+    public void MasterDead(FinalStage manager)
+    {
+        reBirth = false;
+        this.manager = manager;
     }
 
     public int Health

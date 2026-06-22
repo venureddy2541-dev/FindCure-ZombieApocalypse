@@ -1,23 +1,35 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections;
+using System.Collections.Generic;
 
 public class ZombieInvicible : MonoBehaviour
 {
-    SkinnedMeshRenderer skinnedMeshRenderer;
-    Material mat;
-    Material originalMat;
+    [SerializeField] float bodyDisposeSpeed1 = 0.5f;
+    [SerializeField] List<SkinnedMeshRenderer> skinnedMeshRenderer;
+    //Material mat;
+    List<Material> originalMat = new List<Material>();
+    [SerializeField] List<Material> transperantMat;
+    MaterialPropertyBlock mpb;
+    Enemy enemy;
+    EnemyAttack enemyAttack;
 
     void Awake()
     {
-        skinnedMeshRenderer = GetComponent<SkinnedMeshRenderer>();
-        originalMat = skinnedMeshRenderer.sharedMaterial;
-        mat = skinnedMeshRenderer.material;
+        enemyAttack = GetComponent<EnemyAttack>();
+        enemy = transform.parent.GetComponent<Enemy>();
+        //skinnedMeshRenderer = GetComponent<SkinnedMeshRenderer>();
+        mpb = new MaterialPropertyBlock();
+        for(int i=0;i<skinnedMeshRenderer.Count;i++)
+        {
+            originalMat.Add(skinnedMeshRenderer[i].sharedMaterial);
+        }
+        //mat = skinnedMeshRenderer.material;
     }
 
     public void OpaqueToTransparent()
     {
-        mat.SetFloat("_Surface",1);
+        /*mat.SetFloat("_Surface",1);
         mat.SetOverrideTag("RenderType","Transperant");
         mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
 
@@ -27,42 +39,57 @@ public class ZombieInvicible : MonoBehaviour
         mat.DisableKeyword("_AlphaTest_ON");
 
         mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);*/
         
-        if(skinnedMeshRenderer.gameObject.activeInHierarchy == false) return;
-        StartCoroutine(MaterialLerpValue());
+        //if(skinnedMeshRenderer.gameObject.activeInHierarchy == false) return;
+        
+        if(transform.parent.gameObject.activeSelf) { StartCoroutine(MaterialLerpValue()); }
     }
 
     IEnumerator MaterialLerpValue()
     {
-        Color color = mat.color;
+        int count = 0;
+        for(int i=0;i<transperantMat.Count;i++)
+        {
+            for(int j=0;j<skinnedMeshRenderer.Count/2;j++)
+            {
+                skinnedMeshRenderer[count].sharedMaterial = transperantMat[i];
+                count++;
+            }   
+        }
+        
         float val = 1;
         while(val > 0)
         {
-            val -= Time.deltaTime;
-            color.a = val;
-            mat.color = color;
+            val -= Time.deltaTime*bodyDisposeSpeed1;
+            mpb.SetColor("_BaseColor",new Color(1,1,1,val));
+            for(int i=0;i<skinnedMeshRenderer.Count;i++){ skinnedMeshRenderer[i].SetPropertyBlock(mpb); }
             yield return null;
         }
-        color.a = 0;
-        mat.color = color;
 
-        Enemy enemy = transform.parent.parent.GetComponent<Enemy>();
-        if(enemy.reBirth)
-        {
-            enemy.ResetEverything();
-            transform.parent.GetComponent<EnemyAttack>().ResetEverything();
-            enemy.gameObject.SetActive(false);
-        }
-        else
-        {
-            Destroy(enemy.gameObject);
-        }
+        mpb.SetColor("_BaseColor",new Color(1,1,1,0f));
+        for(int i=0;i<skinnedMeshRenderer.Count;i++){ skinnedMeshRenderer[i].SetPropertyBlock(mpb); }
+
+        enemy.gameObject.SetActive(false);
+        enemyAttack.ResetEverything();
+        enemy.ResetEverything();
     }
 
     public void TransparentToOpaque()
     {
-        mat = new Material(originalMat);
-        skinnedMeshRenderer.material = mat;
+        for(int i=0;i<skinnedMeshRenderer.Count;i++)
+        { 
+            skinnedMeshRenderer[i].SetPropertyBlock(null);
+            skinnedMeshRenderer[i].sharedMaterial = originalMat[i];
+        }
+    }
+
+    public void ForceReset()
+    {
+        StopAllCoroutines();
+        TransparentToOpaque();
+        enemy.gameObject.SetActive(false);
+        enemyAttack.ResetEverything();
+        enemy.ResetEverything();
     }
 }

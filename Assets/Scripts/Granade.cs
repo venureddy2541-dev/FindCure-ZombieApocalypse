@@ -76,7 +76,7 @@ public class Granade : MonoBehaviour
 
             if(other.CompareTag("WalkingRobots"))
             {
-                other.GetComponent<WalkingRobots>().TakeDamage(damage);
+                other.GetComponentInParent<WalkingRobots>().TakeDamage(damage);
             }
 
         }

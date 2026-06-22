@@ -16,16 +16,31 @@ public class RobotGenerator : MonoBehaviour
     [SerializeField] int reBirthTime = 30;
 
     List<GameObject> robots = new List<GameObject>();
+    List<RoboBomb> roboBombs = new List<RoboBomb>();
+    List<WalkingRobots> walkingRobots = new List<WalkingRobots>();
 
     void Awake()
     {
         for(int i = 0;i<count;i++)
         {
             robots.Add(Instantiate(robot[Random.Range(0,robot.Length)],instantiatePos.position,instantiatePos.rotation,instantiatePos));
-            RoboBomb roboBom = robots[i].GetComponent<RoboBomb>();
-            if(roboBom) { roboBom.player = player; roboBom.blastAudioSource = blastAudioSource; }
-            else { WalkingRobots walkingRobots = robots[i].GetComponent<WalkingRobots>(); walkingRobots.player = player; walkingRobots.blastAudioSource = blastAudioSource; }
-            
+            RoboBomb roboBomb = robots[i].GetComponent<RoboBomb>();
+            if(roboBomb)
+            {
+                roboBombs.Add(roboBomb); 
+                roboBomb.reBirth = true;
+                roboBomb.player = player; 
+                roboBomb.blastAudioSource = blastAudioSource; 
+            }
+            else 
+            { 
+                WalkingRobots walkingRobot = robots[i].GetComponent<WalkingRobots>(); 
+                walkingRobots.Add(walkingRobot); 
+                walkingRobot.reBirth = true;
+                walkingRobot.player = player;
+                walkingRobot.blastAudioSource = blastAudioSource;
+            }
+
             robots[i].SetActive(false);
         }
     }
@@ -66,19 +81,29 @@ public class RobotGenerator : MonoBehaviour
         health -= damage;
         if(health <= 0)
         {
+            FinalStage finalStage = GetComponentInParent<FinalStage>();
             int remainingRobotsCount = 0;
-            for(int i=0;i<robots.Count;i++)
+            
+            for(int i = 0;i<roboBombs.Count;i++)
             {
-                if(robots[i].activeSelf)
+                if(roboBombs[i].gameObject.activeSelf)
                 {
                     remainingRobotsCount++;
+                    roboBombs[i].MasterDead(finalStage);
+                }
+            }
+
+            for(int j =0;j<walkingRobots.Count;j++)
+            {
+                if(walkingRobots[j].gameObject.activeSelf)
+                {
+                    remainingRobotsCount++;
+                    walkingRobots[j].MasterDead(finalStage);
                 }
             }
             
-            FinalStage finalStage = GetComponentInParent<FinalStage>();
             finalStage.UpdateCount(remainingRobotsCount);
-            
-            finalStage.NormalRobotsDeadCount();
+            finalStage.RobotsDeadCount();
             Instantiate(blastParticles,transform.position,transform.rotation);
             Destroy(gameObject);
         }

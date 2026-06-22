@@ -13,6 +13,8 @@ public class SceneLoader : MonoBehaviour
     [SerializeField] TMP_Text sceneLoadText;
     [SerializeField] GameStart gameStart;
     public VideoPlayer videoPlayer;
+    [SerializeField] GameObject sunLightButton;
+    Light sunLight;
 
     void Awake()
     {
@@ -25,6 +27,14 @@ public class SceneLoader : MonoBehaviour
         sceneLoader = this;
         DontDestroyOnLoad(gameObject);
         PlayBackGroundVideo();
+
+        sunLight = GameObject.FindWithTag("SunLight").GetComponent<Light>();
+        sunLight.enabled = false;
+    }
+
+    public void DisableLobbyUI()
+    {
+        sunLightButton.SetActive(false);
     }
 
     public void SceneLoadManager(int currentScene,bool backToMainMenu)
@@ -60,6 +70,7 @@ public class SceneLoader : MonoBehaviour
         {
             PlayBackGroundVideo();
             gameStart.ActivateButtons();
+            sunLightButton.SetActive(true);
         }
     }
 
@@ -67,5 +78,11 @@ public class SceneLoader : MonoBehaviour
     {
         videoPlayer.targetCamera = GameObject.FindWithTag("MainCamera").GetComponent<Camera>();
         videoPlayer.Play();
+    }
+
+    public void UpdateSunMode(bool mode)
+    {
+        if(mode) sunLight.enabled = false;
+        else sunLight.enabled = true;
     }
 }
